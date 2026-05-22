@@ -180,6 +180,13 @@ if (!token) window.location.href = '/login';
 const params = new URLSearchParams(window.location.search);
 if (params.get('success')) {
   document.getElementById('alert-success').style.display = 'block';
+  // Update local plan while webhook processes
+  const plan = params.get('plan');
+  if (plan) {
+    const u = JSON.parse(localStorage.getItem('gema_user') || '{}');
+    u.plan = plan; u.subscription_status = 'active';
+    localStorage.setItem('gema_user', JSON.stringify(u));
+  }
   window.history.replaceState({}, '', '/dashboard');
 }
 if (params.get('canceled')) {
