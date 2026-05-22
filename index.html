@@ -346,6 +346,23 @@
       cursor: pointer;
     }
     .market-card:hover { border-color: rgba(0,229,160,.3); transform: translateY(-2px); }
+    .market-card.coming-soon {
+      opacity: 0.38;
+      pointer-events: none;
+      position: relative;
+      filter: grayscale(30%);
+    }
+    .market-card.coming-soon::after {
+      content: 'COMING SOON';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px; font-weight: 800; letter-spacing: .12em;
+      color: var(--accent2);
+      background: rgba(10,14,26,.85);
+      border: 1px solid rgba(201,168,76,.4);
+      padding: 5px 14px; border-radius: 100px;
+      white-space: nowrap;
+    }
     .mc-top {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 14px;
@@ -528,16 +545,16 @@
     <div class="hero-content fade-up">
       <div class="hero-eyebrow">
         <span class="dot"></span>
-        Real-time prediction market intelligence
+        BTC Prediction Market Intelligence · Kalshi
       </div>
       <h1>
         Trade Smarter.<br />
         <span class="glow-text">Win More.</span>
       </h1>
       <p class="hero-sub">
-        Gema Interprises gives you institutional-grade tools to analyze prediction
-        markets — whale detection, pattern recognition, and algorithmic signals.
-        All in one platform.
+        Gema Interprises runs a 24/7 algorithmic bot on <strong style="color:var(--text)">BTC prediction markets on Kalshi</strong> —
+        whale detection, dual-trend confirmation, Kelly-sized entries.
+        Subscribe to get the signals. No guesswork.
       </p>
       <div class="hero-btns">
         <a href="/register" class="btn btn-primary" style="font-size:15px;padding:14px 32px;">
@@ -551,30 +568,30 @@
       <!-- Stats -->
       <div class="hero-stats">
         <div class="stat-item">
-          <div class="stat-num"><span>$</span>2.4M</div>
-          <div class="stat-lbl">Volume analyzed today</div>
-        </div>
-        <div class="hero-divider"></div>
-        <div class="stat-item">
           <div class="stat-num">83<span>%</span></div>
-          <div class="stat-lbl">Avg. signal accuracy</div>
+          <div class="stat-lbl">Signal winrate</div>
         </div>
         <div class="hero-divider"></div>
         <div class="stat-item">
-          <div class="stat-num"><span>+</span>14.3<span>%</span></div>
-          <div class="stat-lbl">Avg. ROI day 1 users</div>
+          <div class="stat-num">3</div>
+          <div class="stat-lbl">BTC markets covered</div>
         </div>
         <div class="hero-divider"></div>
         <div class="stat-item">
-          <div class="stat-num">12<span>k</span></div>
-          <div class="stat-lbl">Active traders</div>
+          <div class="stat-num">10<span>s</span></div>
+          <div class="stat-lbl">Scan interval</div>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num">24<span>/7</span></div>
+          <div class="stat-lbl">Automated trading</div>
         </div>
       </div>
 
       <!-- Market Preview Table -->
       <div class="market-preview fade-up">
         <div class="mp-header">
-          <span class="mp-title">🔥 Top Prediction Markets — Live</span>
+          <span class="mp-title">₿ BTC Prediction Markets — Live</span>
           <span class="mp-live"><span class="mp-live-dot"></span>Live</span>
         </div>
         <table class="mp-table">
@@ -652,7 +669,7 @@
             <div class="step-num">01</div>
             <div class="step-body">
               <h4>Market Scan</h4>
-              <p>Continuously monitors BTC, crypto, and event markets on Kalshi every 10 seconds across all active series.</p>
+              <p>Continuously monitors BTC prediction markets on Kalshi every 10 seconds — KXBTC15M, KXBTCH, and KXBTCD series.</p>
             </div>
           </div>
           <div class="step">
@@ -720,8 +737,8 @@
   <div class="container">
     <div class="markets-header fade-up">
       <div>
-        <div class="tag">Live Markets</div>
-        <h2 class="section-title">Active prediction markets</h2>
+        <div class="tag">BTC Markets</div>
+        <h2 class="section-title">BTC prediction markets — live signals</h2>
       </div>
       <a href="#" class="btn btn-outline">View All Markets →</a>
     </div>
@@ -831,7 +848,7 @@
 <div class="container">
   <div class="cta-banner fade-up">
     <h2>Ready to make markets work for you?</h2>
-    <p>Join 12,000+ traders using Gema Interprises to capture alpha in prediction markets.</p>
+    <p>Start capturing alpha on BTC prediction markets with algorithmic signals that actually work.</p>
     <a href="/register" class="btn btn-primary" style="font-size:16px;padding:16px 40px;">
       Start for Free — No credit card needed →
     </a>
@@ -889,21 +906,18 @@
 const MARKETS_DATA = [
   { market:"KXBTC15M", name:"BTC Next 15 Min", cat:"CRYPTO", yes:0.62, no:0.38, vol:"$48,210", whale:"🐋 STRONG" },
   { market:"KXBTCH",   name:"BTC This Hour",   cat:"CRYPTO", yes:0.71, no:0.29, vol:"$92,500", whale:"🐋 STRONG" },
-  { market:"KXBTCD",   name:"BTC Today",        cat:"CRYPTO", yes:0.58, no:0.42, vol:"$124,300", whale:"⚡ MEDIUM" },
-  { market:"KXETH1H",  name:"ETH This Hour",    cat:"CRYPTO", yes:0.45, no:0.55, vol:"$31,800", whale:"—" },
-  { market:"KXFED",    name:"Fed Rate Decision",cat:"MACRO",  yes:0.83, no:0.17, vol:"$204,700", whale:"🐋 STRONG" },
-  { market:"KXSP500",  name:"S&P 500 Up Today", cat:"EQUITY", yes:0.55, no:0.45, vol:"$67,200", whale:"⚡ MEDIUM" },
+  { market:"KXBTCD",   name:"BTC Today",       cat:"CRYPTO", yes:0.58, no:0.42, vol:"$124,300", whale:"⚡ MEDIUM" },
 ];
 
 const TICKER_DATA = [
-  { name:"BTC/USD",  price:"$67,420", chg:"+2.3%", up:true },
-  { name:"KXBTC15M YES", price:"$0.62", chg:"+4.1%", up:true },
-  { name:"KXBTCH YES",   price:"$0.71", chg:"+8.2%", up:true },
-  { name:"ETH/USD",  price:"$3,482",  chg:"-0.8%", up:false },
-  { name:"KXFED YES",    price:"$0.83", chg:"+1.2%", up:true },
-  { name:"KXSP500 YES",  price:"$0.55", chg:"+0.5%", up:true },
-  { name:"KXBTCD YES",   price:"$0.58", chg:"-1.0%", up:false },
-  { name:"SOL/USD",  price:"$142.3",  chg:"+5.6%", up:true },
+  { name:"BTC/USD",       price:"$67,420", chg:"+2.3%",  up:true  },
+  { name:"KXBTC15M YES",  price:"$0.62",   chg:"+4.1%",  up:true  },
+  { name:"KXBTC15M NO",   price:"$0.38",   chg:"-4.1%",  up:false },
+  { name:"KXBTCH YES",    price:"$0.71",   chg:"+8.2%",  up:true  },
+  { name:"KXBTCH NO",     price:"$0.29",   chg:"-8.2%",  up:false },
+  { name:"KXBTCD YES",    price:"$0.58",   chg:"-1.0%",  up:false },
+  { name:"KXBTCD NO",     price:"$0.42",   chg:"+1.0%",  up:true  },
+  { name:"BTC/USD",       price:"$67,420", chg:"+2.3%",  up:true  },
 ];
 
 const TRADE_LOG = [
@@ -950,20 +964,22 @@ MARKETS_DATA.forEach(m => {
 // ── Market Cards ────────────────────────────────────────────
 const grid = document.getElementById('markets-grid');
 const CARD_MARKETS = [
-  { cat:"CRYPTO", title:"Will BTC be above $68k at 3:00 PM ET?", yes:"YES 62¢", no:"NO 38¢", vol:"$48.2k" },
-  { cat:"CRYPTO", title:"Will ETH rise more than 1% today?",     yes:"YES 45¢", no:"NO 55¢", vol:"$31.8k" },
-  { cat:"MACRO",  title:"Will the Fed hold rates this meeting?",  yes:"YES 83¢", no:"NO 17¢", vol:"$204k"  },
-  { cat:"EQUITY", title:"Will S&P 500 close positive today?",    yes:"YES 55¢", no:"NO 45¢", vol:"$67.2k" },
-  { cat:"CRYPTO", title:"Will BTC close above $65k today?",      yes:"YES 58¢", no:"NO 42¢", vol:"$124k"  },
-  { cat:"POLITICS", title:"Will the Senate bill pass this week?",yes:"YES 34¢", no:"NO 66¢", vol:"$88.5k" },
+  // Live BTC markets GemaBot actually trades
+  { cat:"CRYPTO",   title:"Will BTC be higher 15 minutes from now?",   yes:"YES 62¢", no:"NO 38¢", vol:"$48.2k",  comingSoon: false },
+  { cat:"CRYPTO",   title:"Will BTC rise this hour?",                   yes:"YES 71¢", no:"NO 29¢", vol:"$92.5k",  comingSoon: false },
+  { cat:"CRYPTO",   title:"Will BTC close positive today?",             yes:"YES 58¢", no:"NO 42¢", vol:"$124k",   comingSoon: false },
+  // Future markets — not yet covered
+  { cat:"CRYPTO",   title:"Will ETH rise more than 1% today?",         yes:"—",       no:"—",       vol:"—",       comingSoon: true  },
+  { cat:"MACRO",    title:"Will the Fed hold rates this meeting?",      yes:"—",       no:"—",       vol:"—",       comingSoon: true  },
+  { cat:"EQUITY",   title:"Will S&P 500 close positive today?",        yes:"—",       no:"—",       vol:"—",       comingSoon: true  },
 ];
 CARD_MARKETS.forEach(m => {
   const c = document.createElement('div');
-  c.className = 'market-card fade-up';
+  c.className = 'market-card fade-up' + (m.comingSoon ? ' coming-soon' : '');
   c.innerHTML = `
     <div class="mc-top">
       <span class="mc-cat">${m.cat}</span>
-      <span class="mc-vol">Vol ${m.vol}</span>
+      <span class="mc-vol">${m.comingSoon ? '' : 'Vol ' + m.vol}</span>
     </div>
     <div class="mc-title">${m.title}</div>
     <div class="mc-odds">
