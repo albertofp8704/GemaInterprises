@@ -12,17 +12,18 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #080c14;
-      --bg2:       #0d1320;
-      --bg3:       #111827;
-      --border:    rgba(255,255,255,.08);
-      --accent:    #00e5a0;
-      --accent2:   #00b8ff;
-      --red:       #ff4d6a;
-      --text:      #e2e8f0;
-      --muted:     #64748b;
-      --card:      rgba(255,255,255,.03);
-      --glow:      0 0 40px rgba(0,229,160,.18);
+      --bg:        #03060f;
+      --bg2:       #070c1a;
+      --bg3:       #0b1120;
+      --border:    rgba(255,255,255,.07);
+      --accent:    #00C805;
+      --accent2:   #C9A84C;
+      --red:       #FF2D55;
+      --blue:      #0066FF;
+      --text:      #E8EDF5;
+      --muted:     #556070;
+      --card:      rgba(255,255,255,.025);
+      --glow:      0 0 40px rgba(0,200,5,.2);
     }
 
     html { scroll-behavior: smooth; }
@@ -49,9 +50,9 @@
       display: inline-block;
       font-size: 11px; font-weight: 600; letter-spacing: .1em;
       text-transform: uppercase;
-      color: var(--accent);
-      background: rgba(0,229,160,.1);
-      border: 1px solid rgba(0,229,160,.25);
+      color: var(--accent2);
+      background: rgba(201,168,76,.1);
+      border: 1px solid rgba(201,168,76,.3);
       padding: 4px 12px; border-radius: 100px;
       margin-bottom: 16px;
     }
@@ -72,10 +73,10 @@
       border: none;
     }
     .btn-primary {
-      background: var(--accent); color: #080c14;
+      background: var(--accent); color: #03060f;
       box-shadow: var(--glow);
     }
-    .btn-primary:hover { background: #00ffb3; transform: translateY(-1px); box-shadow: 0 0 60px rgba(0,229,160,.3); }
+    .btn-primary:hover { background: #00e506; transform: translateY(-1px); box-shadow: 0 0 60px rgba(0,200,5,.35); }
     .btn-outline {
       background: transparent; color: var(--text);
       border: 1px solid var(--border);
@@ -101,8 +102,8 @@
     }
     .ticker-item .name { color: var(--muted); }
     .ticker-item .price { font-weight: 600; }
-    .ticker-item .up   { color: var(--accent); }
-    .ticker-item .dn   { color: var(--red); }
+    .ticker-item .up   { color: #00C805; }
+    .ticker-item .dn   { color: #FF2D55; }
     @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
     /* ── Nav ─────────────────────────────────────────────────── */
@@ -123,7 +124,7 @@
     }
     .logo-mark {
       width: 32px; height: 32px; border-radius: 8px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, #00C805, #C9A84C);
       display: flex; align-items: center; justify-content: center;
       font-size: 16px;
     }
@@ -137,7 +138,7 @@
     .nav-actions { display: flex; gap: 10px; align-items: center; }
     .nav-badge {
       font-size: 10px; font-weight: 700; letter-spacing: .05em;
-      background: var(--accent); color: #000;
+      background: var(--accent2); color: #000;
       padding: 2px 7px; border-radius: 100px;
       margin-left: -4px; vertical-align: middle;
     }
@@ -155,8 +156,8 @@
     .hero-bg {
       position: absolute; inset: 0; z-index: 0;
       background:
-        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(0,229,160,.12) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 40% at 85% 60%, rgba(0,184,255,.08) 0%, transparent 60%);
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(0,200,5,.1) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 85% 60%, rgba(201,168,76,.07) 0%, transparent 60%);
     }
     .hero-grid {
       position: absolute; inset: 0; z-index: 0;
@@ -187,7 +188,7 @@
       letter-spacing: -.04em;
     }
     .hero h1 .glow-text {
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      background: linear-gradient(90deg, #00C805, #C9A84C);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     .hero-sub {
@@ -205,7 +206,7 @@
       font-size: 32px; font-weight: 800; letter-spacing: -.03em;
       font-family: 'JetBrains Mono', monospace;
     }
-    .stat-num span { color: var(--accent); }
+    .stat-num span { color: #00C805; }
     .stat-lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
     .hero-divider {
       width: 1px; background: var(--border);
@@ -257,9 +258,9 @@
     .mp-market small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
     .mp-mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
     .bar-wrap { width: 140px; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .5s; }
-    .badge-yes { color: var(--accent); font-weight: 700; font-size: 12px; }
-    .badge-no  { color: var(--red);   font-weight: 700; font-size: 12px; }
+    .bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #00C805, #C9A84C); transition: width .5s; }
+    .badge-yes { color: #00C805; font-weight: 700; font-size: 12px; }
+    .badge-no  { color: #FF2D55; font-weight: 700; font-size: 12px; }
 
     /* ── Features ─────────────────────────────────────────────── */
     .features { padding: 100px 0; }
@@ -280,8 +281,8 @@
     .feat-card:hover { border-color: rgba(0,229,160,.3); transform: translateY(-3px); }
     .feat-icon {
       width: 44px; height: 44px; border-radius: 10px;
-      background: rgba(0,229,160,.1);
-      border: 1px solid rgba(0,229,160,.2);
+      background: rgba(0,200,5,.08);
+      border: 1px solid rgba(0,200,5,.2);
       display: flex; align-items: center; justify-content: center;
       font-size: 20px; margin-bottom: 18px;
     }
@@ -301,10 +302,10 @@
     }
     .step-num {
       min-width: 36px; height: 36px; border-radius: 50%;
-      background: rgba(0,229,160,.12);
-      border: 1px solid rgba(0,229,160,.3);
+      background: rgba(0,200,5,.1);
+      border: 1px solid rgba(0,200,5,.3);
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: var(--accent);
+      font-size: 13px; font-weight: 700; color: #00C805;
       font-family: 'JetBrains Mono', monospace;
     }
     .step-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
@@ -319,7 +320,7 @@
       margin-bottom: 20px;
     }
     .chart-title { font-size: 13px; font-weight: 600; }
-    .chart-pnl { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--accent); }
+    .chart-pnl { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: #00C805; }
     .chart-pnl small { font-size: 12px; color: var(--muted); display: block; font-weight: 400; font-family: 'Inter', sans-serif; }
     /* Simple SVG chart */
     .sparkline { width: 100%; height: 100px; }
@@ -352,7 +353,7 @@
     .mc-cat {
       font-size: 10px; font-weight: 700; letter-spacing: .08em;
       text-transform: uppercase; color: var(--accent2);
-      background: rgba(0,184,255,.1); border: 1px solid rgba(0,184,255,.2);
+      background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.25);
       padding: 3px 8px; border-radius: 100px;
     }
     .mc-vol { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
@@ -366,10 +367,10 @@
       font-family: 'JetBrains Mono', monospace;
       transition: all .15s;
     }
-    .odd-yes { background: rgba(0,229,160,.12); color: var(--accent); border: 1px solid rgba(0,229,160,.2); }
-    .odd-yes:hover { background: rgba(0,229,160,.25); }
-    .odd-no  { background: rgba(255,77,106,.1); color: var(--red); border: 1px solid rgba(255,77,106,.2); }
-    .odd-no:hover  { background: rgba(255,77,106,.2); }
+    .odd-yes { background: rgba(0,200,5,.1); color: #00C805; border: 1px solid rgba(0,200,5,.25); }
+    .odd-yes:hover { background: rgba(0,200,5,.22); }
+    .odd-no  { background: rgba(255,45,85,.1); color: var(--red); border: 1px solid rgba(255,45,85,.2); }
+    .odd-no:hover  { background: rgba(255,45,85,.2); }
     .odd-lbl { font-size: 10px; font-weight: 400; opacity: .7; display: block; font-family: 'Inter', sans-serif; }
 
     /* ── Pricing ─────────────────────────────────────────────── */
@@ -387,13 +388,13 @@
       position: relative; overflow: hidden;
     }
     .plan-card.popular {
-      border-color: var(--accent);
-      background: rgba(0,229,160,.03);
+      border-color: #C9A84C;
+      background: rgba(201,168,76,.03);
     }
     .plan-card.popular::before {
       content: 'MOST POPULAR';
       position: absolute; top: 0; right: 0;
-      background: var(--accent); color: #000;
+      background: linear-gradient(90deg, #00C805, #C9A84C); color: #000;
       font-size: 9px; font-weight: 800; letter-spacing: .1em;
       padding: 4px 14px; border-radius: 0 18px 0 10px;
     }
@@ -410,7 +411,7 @@
       display: flex; align-items: flex-start; gap: 10px;
       font-size: 14px; color: var(--muted);
     }
-    .plan-features li .check { color: var(--accent); flex-shrink: 0; }
+    .plan-features li .check { color: #00C805; flex-shrink: 0; }
     .plan-features li .cross { color: var(--muted); opacity: .4; flex-shrink: 0; }
 
     /* ── Testimonials ─────────────────────────────────────────── */
@@ -429,7 +430,7 @@
     .testi-author { display: flex; align-items: center; gap: 12px; }
     .testi-avatar {
       width: 38px; height: 38px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, #00C805, #C9A84C);
       display: flex; align-items: center; justify-content: center;
       font-size: 14px; font-weight: 700; color: #000;
     }
@@ -439,8 +440,8 @@
     /* ── CTA Banner ─────────────────────────────────────────── */
     .cta-banner {
       margin: 0 24px 80px;
-      background: linear-gradient(135deg, rgba(0,229,160,.12) 0%, rgba(0,184,255,.08) 100%);
-      border: 1px solid rgba(0,229,160,.2);
+      background: linear-gradient(135deg, rgba(0,200,5,.1) 0%, rgba(201,168,76,.08) 100%);
+      border: 1px solid rgba(201,168,76,.25);
       border-radius: 24px; padding: 64px 48px;
       text-align: center;
       position: relative; overflow: hidden;
@@ -449,7 +450,7 @@
       content: '';
       position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
       width: 300px; height: 300px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,229,160,.15), transparent 70%);
+      background: radial-gradient(circle, rgba(0,200,5,.12), transparent 70%);
     }
     .cta-banner h2 { font-size: clamp(24px, 4vw, 40px); font-weight: 800; letter-spacing: -.03em; margin-bottom: 12px; position: relative; }
     .cta-banner p { color: var(--muted); font-size: 16px; margin-bottom: 28px; position: relative; }
@@ -685,25 +686,25 @@
         <svg class="sparkline" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#00e5a0" stop-opacity=".3"/>
-              <stop offset="100%" stop-color="#00e5a0" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#00C805" stop-opacity=".3"/>
+              <stop offset="100%" stop-color="#00C805" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <path d="M0,80 L40,72 L80,68 L110,65 L140,60 L160,55 L180,52 L200,48 L220,52 L240,44 L265,38 L290,30 L320,22 L360,15 L400,10"
-            stroke="#00e5a0" stroke-width="2.5" stroke-linecap="round"/>
+            stroke="#00C805" stroke-width="2.5" stroke-linecap="round"/>
           <path d="M0,80 L40,72 L80,68 L110,65 L140,60 L160,55 L180,52 L200,48 L220,52 L240,44 L265,38 L290,30 L320,22 L360,15 L400,10 L400,100 L0,100 Z"
             fill="url(#grad)"/>
           <!-- dots for trades -->
-          <circle cx="110" cy="65" r="4" fill="#00e5a0"/>
-          <circle cx="180" cy="52" r="4" fill="#00e5a0"/>
-          <circle cx="220" cy="52" r="4" fill="#ff4d6a"/>
-          <circle cx="265" cy="38" r="4" fill="#00e5a0"/>
-          <circle cx="320" cy="22" r="4" fill="#00e5a0"/>
-          <circle cx="400" cy="10" r="4" fill="#00e5a0"/>
+          <circle cx="110" cy="65" r="4" fill="#00C805"/>
+          <circle cx="180" cy="52" r="4" fill="#00C805"/>
+          <circle cx="220" cy="52" r="4" fill="#FF2D55"/>
+          <circle cx="265" cy="38" r="4" fill="#00C805"/>
+          <circle cx="320" cy="22" r="4" fill="#00C805"/>
+          <circle cx="400" cy="10" r="4" fill="#C9A84C"/>
         </svg>
         <div class="chart-legend">
-          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div> Win</div>
-          <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div> Loss</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#00C805"></div> Win</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#FF2D55"></div> Loss</div>
         </div>
         <!-- Mini trade log -->
         <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;">
@@ -977,10 +978,10 @@ CARD_MARKETS.forEach(m => {
 const logEl = document.getElementById('trade-log');
 logEl.innerHTML = TRADE_LOG.map(t => `
   <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);">
-    <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace">${t.time}</span>
+    <span style="font-size:12px;color:#556070;font-family:'JetBrains Mono',monospace">${t.time}</span>
     <span style="font-size:12px;font-weight:600">${t.market}</span>
-    <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${t.side==='YES'?'rgba(0,229,160,.1)':'rgba(255,77,106,.1)'};color:${t.side==='YES'?'var(--accent)':'var(--red)'}">${t.side}</span>
-    <span style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${t.result==='WIN'?'var(--accent)':'var(--red)'}">${t.pnl}</span>
+    <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${t.side==='YES'?'rgba(0,200,5,.1)':'rgba(255,45,85,.1)'};color:${t.side==='YES'?'#00C805':'#FF2D55'}">${t.side}</span>
+    <span style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${t.result==='WIN'?'#00C805':'#FF2D55'}">${t.pnl}</span>
   </div>
 `).join('');
 
