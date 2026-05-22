@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gema Interprises — Market Maker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c14;
+      --bg2:       #0d1320;
+      --bg3:       #111827;
+      --border:    rgba(255,255,255,.08);
+      --accent:    #00e5a0;
+      --accent2:   #00b8ff;
+      --red:       #ff4d6a;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --card:      rgba(255,255,255,.03);
+      --glow:      0 0 40px rgba(0,229,160,.18);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ── Scrollbar ──────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+    /* ── Utility ─────────────────────────────────────────────── */
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    .tag {
+      display: inline-block;
+      font-size: 11px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(0,229,160,.1);
+      border: 1px solid rgba(0,229,160,.25);
+      padding: 4px 12px; border-radius: 100px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800; line-height: 1.15;
+      letter-spacing: -.02em;
+    }
+    .section-sub {
+      color: var(--muted); font-size: 16px;
+      max-width: 520px; margin-top: 12px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--accent); color: #080c14;
+      box-shadow: var(--glow);
+    }
+    .btn-primary:hover { background: #00ffb3; transform: translateY(-1px); box-shadow: 0 0 60px rgba(0,229,160,.3); }
+    .btn-outline {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Ticker tape ─────────────────────────────────────────── */
+    .ticker-wrap {
+      width: 100%; overflow: hidden;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+    }
+    .ticker-track {
+      display: flex; gap: 48px;
+      width: max-content;
+      animation: ticker 40s linear infinite;
+    }
+    .ticker-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+    }
+    .ticker-item .name { color: var(--muted); }
+    .ticker-item .price { font-weight: 600; }
+    .ticker-item .up   { color: var(--accent); }
+    .ticker-item .dn   { color: var(--red); }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ── Nav ─────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(8,12,20,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 17px; font-weight: 800;
+      letter-spacing: -.03em;
+    }
+    .logo-mark {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .logo-sub { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 2px; }
+    .nav-links {
+      display: flex; align-items: center; gap: 32px;
+      list-style: none;
+    }
+    .nav-links a { font-size: 14px; color: var(--muted); font-weight: 500; transition: color .2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+    .nav-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: .05em;
+      background: var(--accent); color: #000;
+      padding: 2px 7px; border-radius: 100px;
+      margin-left: -4px; vertical-align: middle;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      padding: 100px 0 80px;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(0,229,160,.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 85% 60%, rgba(0,184,255,.08) 0%, transparent 60%);
+    }
+    .hero-grid {
+      position: absolute; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    }
+    .hero-content { position: relative; z-index: 1; text-align: center; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--muted);
+      background: var(--card); border: 1px solid var(--border);
+      padding: 6px 16px; border-radius: 100px;
+      margin-bottom: 28px;
+    }
+    .hero-eyebrow .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 76px);
+      font-weight: 900; line-height: 1.05;
+      letter-spacing: -.04em;
+    }
+    .hero h1 .glow-text {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      color: var(--muted); font-size: 18px;
+      max-width: 560px; margin: 20px auto 36px;
+      line-height: 1.65;
+    }
+    .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .hero-stats {
+      display: flex; justify-content: center; gap: 48px;
+      margin-top: 72px; flex-wrap: wrap;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-size: 32px; font-weight: 800; letter-spacing: -.03em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stat-num span { color: var(--accent); }
+    .stat-lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .hero-divider {
+      width: 1px; background: var(--border);
+      align-self: stretch; margin: 4px 0;
+    }
+
+    /* ── Live Market Preview ─────────────────────────────────── */
+    .market-preview {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: 64px;
+      max-width: 900px; margin-left: auto; margin-right: auto;
+      box-shadow: 0 40px 80px rgba(0,0,0,.4);
+    }
+    .mp-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.02);
+    }
+    .mp-title { font-size: 13px; font-weight: 600; }
+    .mp-live {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 600; letter-spacing: .05em;
+      color: var(--accent); text-transform: uppercase;
+    }
+    .mp-live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .mp-table { width: 100%; border-collapse: collapse; }
+    .mp-table th {
+      font-size: 11px; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--muted);
+      padding: 10px 20px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.01);
+    }
+    .mp-table td {
+      padding: 14px 20px; font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .mp-table tr:last-child td { border-bottom: none; }
+    .mp-table tr:hover td { background: rgba(255,255,255,.02); }
+    .mp-market { font-weight: 600; }
+    .mp-market small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+    .mp-mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    .bar-wrap { width: 140px; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .5s; }
+    .badge-yes { color: var(--accent); font-weight: 700; font-size: 12px; }
+    .badge-no  { color: var(--red);   font-weight: 700; font-size: 12px; }
+
+    /* ── Features ─────────────────────────────────────────────── */
+    .features { padding: 100px 0; }
+    .features-header { text-align: center; margin-bottom: 64px; }
+    .features-header .section-sub { margin: 12px auto 0; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .feat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: border-color .25s, transform .25s;
+    }
+    .feat-card:hover { border-color: rgba(0,229,160,.3); transform: translateY(-3px); }
+    .feat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: rgba(0,229,160,.1);
+      border: 1px solid rgba(0,229,160,.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 18px;
+    }
+    .feat-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .feat-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
+
+    /* ── How it Works ─────────────────────────────────────────── */
+    .how { padding: 80px 0; background: var(--bg2); }
+    .how-inner {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+    }
+    @media(max-width:768px) { .how-inner { grid-template-columns: 1fr; gap: 40px; } }
+    .how-steps { display: flex; flex-direction: column; gap: 28px; }
+    .step {
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .step-num {
+      min-width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(0,229,160,.12);
+      border: 1px solid rgba(0,229,160,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .step-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .step-body p { font-size: 14px; color: var(--muted); }
+    .how-visual {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px;
+    }
+    .chart-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .chart-title { font-size: 13px; font-weight: 600; }
+    .chart-pnl { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--accent); }
+    .chart-pnl small { font-size: 12px; color: var(--muted); display: block; font-weight: 400; font-family: 'Inter', sans-serif; }
+    /* Simple SVG chart */
+    .sparkline { width: 100%; height: 100px; }
+    .chart-legend {
+      display: flex; gap: 20px; margin-top: 16px;
+    }
+    .leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── Markets ─────────────────────────────────────────────── */
+    .markets { padding: 100px 0; }
+    .markets-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; flex-wrap: wrap; gap: 16px; }
+    .markets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 16px;
+    }
+    .market-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px;
+      transition: border-color .2s, transform .2s;
+      cursor: pointer;
+    }
+    .market-card:hover { border-color: rgba(0,229,160,.3); transform: translateY(-2px); }
+    .mc-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .mc-cat {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--accent2);
+      background: rgba(0,184,255,.1); border: 1px solid rgba(0,184,255,.2);
+      padding: 3px 8px; border-radius: 100px;
+    }
+    .mc-vol { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    .mc-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
+    .mc-odds {
+      display: flex; gap: 8px;
+    }
+    .odd-btn {
+      flex: 1; padding: 10px 6px; border-radius: 8px; text-align: center;
+      border: none; cursor: pointer; font-size: 13px; font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all .15s;
+    }
+    .odd-yes { background: rgba(0,229,160,.12); color: var(--accent); border: 1px solid rgba(0,229,160,.2); }
+    .odd-yes:hover { background: rgba(0,229,160,.25); }
+    .odd-no  { background: rgba(255,77,106,.1); color: var(--red); border: 1px solid rgba(255,77,106,.2); }
+    .odd-no:hover  { background: rgba(255,77,106,.2); }
+    .odd-lbl { font-size: 10px; font-weight: 400; opacity: .7; display: block; font-family: 'Inter', sans-serif; }
+
+    /* ── Pricing ─────────────────────────────────────────────── */
+    .pricing { padding: 100px 0; background: var(--bg2); }
+    .pricing-header { text-align: center; margin-bottom: 64px; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; max-width: 900px; margin: 0 auto;
+    }
+    .plan-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 32px;
+      display: flex; flex-direction: column;
+      transition: border-color .2s;
+      position: relative; overflow: hidden;
+    }
+    .plan-card.popular {
+      border-color: var(--accent);
+      background: rgba(0,229,160,.03);
+    }
+    .plan-card.popular::before {
+      content: 'MOST POPULAR';
+      position: absolute; top: 0; right: 0;
+      background: var(--accent); color: #000;
+      font-size: 9px; font-weight: 800; letter-spacing: .1em;
+      padding: 4px 14px; border-radius: 0 18px 0 10px;
+    }
+    .plan-name { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 12px; }
+    .plan-price {
+      font-size: 48px; font-weight: 900; letter-spacing: -.04em;
+      line-height: 1; margin-bottom: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .plan-price sup { font-size: 20px; vertical-align: top; margin-top: 8px; }
+    .plan-period { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+    .plan-features { list-style: none; flex: 1; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
+    .plan-features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 14px; color: var(--muted);
+    }
+    .plan-features li .check { color: var(--accent); flex-shrink: 0; }
+    .plan-features li .cross { color: var(--muted); opacity: .4; flex-shrink: 0; }
+
+    /* ── Testimonials ─────────────────────────────────────────── */
+    .testi { padding: 100px 0; }
+    .testi-header { text-align: center; margin-bottom: 56px; }
+    .testi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .testi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px;
+    }
+    .testi-stars { color: #f59e0b; font-size: 14px; margin-bottom: 12px; letter-spacing: 2px; }
+    .testi-text { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; }
+    .testi-author { display: flex; align-items: center; gap: 12px; }
+    .testi-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #000;
+    }
+    .testi-name { font-size: 14px; font-weight: 600; }
+    .testi-role { font-size: 12px; color: var(--muted); }
+
+    /* ── CTA Banner ─────────────────────────────────────────── */
+    .cta-banner {
+      margin: 0 24px 80px;
+      background: linear-gradient(135deg, rgba(0,229,160,.12) 0%, rgba(0,184,255,.08) 100%);
+      border: 1px solid rgba(0,229,160,.2);
+      border-radius: 24px; padding: 64px 48px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-banner::before {
+      content: '';
+      position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 300px; height: 300px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,229,160,.15), transparent 70%);
+    }
+    .cta-banner h2 { font-size: clamp(24px, 4vw, 40px); font-weight: 800; letter-spacing: -.03em; margin-bottom: 12px; position: relative; }
+    .cta-banner p { color: var(--muted); font-size: 16px; margin-bottom: 28px; position: relative; }
+    .cta-banner .btn { position: relative; }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 48px 0 32px;
+    }
+    .footer-inner {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px; margin-bottom: 40px;
+    }
+    @media(max-width:768px) { .footer-inner { grid-template-columns: 1fr 1fr; } }
+    .footer-brand p { font-size: 14px; color: var(--muted); margin-top: 12px; max-width: 240px; line-height: 1.65; }
+    .footer-col h5 { font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-col ul a { font-size: 14px; color: var(--muted); transition: color .2s; }
+    .footer-col ul a:hover { color: var(--text); }
+    .footer-bottom {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 24px; border-top: 1px solid var(--border);
+      font-size: 13px; color: var(--muted); flex-wrap: wrap; gap: 12px;
+    }
+
+    /* ── Animations ──────────────────────────────────────────── */
+    .fade-up {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- ── Ticker ─────────────────────────────────────── -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<!-- ── Nav ───────────────────────────────────────── -->
+<nav>
+  <div class="container">
+    <div class="nav-inner">
+      <div class="logo">
+        <div class="logo-mark">⬡</div>
+        <div>
+          Gema Interprises
+          <div class="logo-sub">Market Maker</div>
+        </div>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#markets">Markets</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How it Works</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#" style="color:var(--accent);">Docs <span class="nav-badge">NEW</span></a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="#" class="btn btn-outline" style="padding:9px 20px;">Sign In</a>
+        <a href="#" class="btn btn-primary" style="padding:9px 20px;">Get Started →</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ──────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="container">
+    <div class="hero-content fade-up">
+      <div class="hero-eyebrow">
+        <span class="dot"></span>
+        Real-time prediction market intelligence
+      </div>
+      <h1>
+        Trade Smarter.<br />
+        <span class="glow-text">Win More.</span>
+      </h1>
+      <p class="hero-sub">
+        Gema Interprises gives you institutional-grade tools to analyze prediction
+        markets — whale detection, pattern recognition, and algorithmic signals.
+        All in one platform.
+      </p>
+      <div class="hero-btns">
+        <a href="#" class="btn btn-primary" style="font-size:15px;padding:14px 32px;">
+          Start Trading Free →
+        </a>
+        <a href="#how" class="btn btn-outline" style="font-size:15px;padding:14px 32px;">
+          See How It Works
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num"><span>$</span>2.4M</div>
+          <div class="stat-lbl">Volume analyzed today</div>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num">83<span>%</span></div>
+          <div class="stat-lbl">Avg. signal accuracy</div>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num"><span>+</span>14.3<span>%</span></div>
+          <div class="stat-lbl">Avg. ROI day 1 users</div>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num">12<span>k</span></div>
+          <div class="stat-lbl">Active traders</div>
+        </div>
+      </div>
+
+      <!-- Market Preview Table -->
+      <div class="market-preview fade-up">
+        <div class="mp-header">
+          <span class="mp-title">🔥 Top Prediction Markets — Live</span>
+          <span class="mp-live"><span class="mp-live-dot"></span>Live</span>
+        </div>
+        <table class="mp-table">
+          <thead>
+            <tr>
+              <th>Market</th>
+              <th>Yes</th>
+              <th>No</th>
+              <th>Confidence</th>
+              <th>Whale Signal</th>
+              <th>Volume</th>
+            </tr>
+          </thead>
+          <tbody id="market-rows">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ──────────────────────────────────── -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="features-header fade-up">
+      <div class="tag">Platform Features</div>
+      <h2 class="section-title">Everything you need to<br/>dominate prediction markets</h2>
+      <p class="section-sub">From real-time whale detection to automated pattern analysis — Gema gives you the edge.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card fade-up">
+        <div class="feat-icon">🐋</div>
+        <div class="feat-title">Whale Tracker</div>
+        <div class="feat-desc">Instantly detect large-volume trades ($200+) across all markets. Know when smart money moves before the market reacts.</div>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Trend Intelligence</div>
+        <div class="feat-desc">Dual confirmation algorithm — short (6-tick) and long (20-tick) trend analysis to filter noise and confirm real momentum.</div>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">Algorithmic Signals</div>
+        <div class="feat-desc">Automated buy/sell signals combining whale activity, price trends, and Kelly Criterion position sizing for optimal entries.</div>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">🛡️</div>
+        <div class="feat-title">Risk Management</div>
+        <div class="feat-desc">Built-in trailing stop-loss ($10 from peak) and automatic cooldown periods after losses. Protect your capital automatically.</div>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">📈</div>
+        <div class="feat-title">Performance Reports</div>
+        <div class="feat-desc">Daily, weekly, and monthly Excel reports with 4-tab analysis: trades, P&L breakdown, winrate trends, and compound growth projection.</div>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">🔔</div>
+        <div class="feat-title">Instant Alerts</div>
+        <div class="feat-desc">Real-time Telegram notifications for every trade signal, whale detection, market settlement, and 6-hour portfolio summary.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it Works ───────────────────────────────── -->
+<section class="how" id="how">
+  <div class="container">
+    <div class="how-inner">
+      <div class="fade-up">
+        <div class="tag">How it Works</div>
+        <h2 class="section-title">Signal to trade<br/>in seconds</h2>
+        <p class="section-sub" style="margin-bottom:36px;">Our engine scans markets every 10 seconds and fires alerts only when all conditions align.</p>
+        <div class="how-steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <h4>Market Scan</h4>
+              <p>Continuously monitors BTC, crypto, and event markets on Kalshi every 10 seconds across all active series.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <h4>Whale Detection</h4>
+              <p>Identifies trades ≥$200 in the order book. Mega-whales (≥$1,000) trigger priority STRONG signals.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <h4>Trend Confirmation</h4>
+              <p>Dual-timeframe analysis confirms the whale direction aligns with short AND long-term price momentum.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-body">
+              <h4>Sized Entry</h4>
+              <p>Kelly Criterion automatically sizes the position (8% STRONG / 5% MEDIUM) and logs the trade for settlement tracking.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="how-visual fade-up">
+        <div class="chart-header">
+          <div class="chart-title">Portfolio Performance</div>
+          <div class="chart-pnl">+$14.48 <small>+14.35% today</small></div>
+        </div>
+        <svg class="sparkline" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#00e5a0" stop-opacity=".3"/>
+              <stop offset="100%" stop-color="#00e5a0" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,80 L40,72 L80,68 L110,65 L140,60 L160,55 L180,52 L200,48 L220,52 L240,44 L265,38 L290,30 L320,22 L360,15 L400,10"
+            stroke="#00e5a0" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M0,80 L40,72 L80,68 L110,65 L140,60 L160,55 L180,52 L200,48 L220,52 L240,44 L265,38 L290,30 L320,22 L360,15 L400,10 L400,100 L0,100 Z"
+            fill="url(#grad)"/>
+          <!-- dots for trades -->
+          <circle cx="110" cy="65" r="4" fill="#00e5a0"/>
+          <circle cx="180" cy="52" r="4" fill="#00e5a0"/>
+          <circle cx="220" cy="52" r="4" fill="#ff4d6a"/>
+          <circle cx="265" cy="38" r="4" fill="#00e5a0"/>
+          <circle cx="320" cy="22" r="4" fill="#00e5a0"/>
+          <circle cx="400" cy="10" r="4" fill="#00e5a0"/>
+        </svg>
+        <div class="chart-legend">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div> Win</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div> Loss</div>
+        </div>
+        <!-- Mini trade log -->
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;">
+          <div id="trade-log"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Markets ────────────────────────────────────── -->
+<section class="markets" id="markets">
+  <div class="container">
+    <div class="markets-header fade-up">
+      <div>
+        <div class="tag">Live Markets</div>
+        <h2 class="section-title">Active prediction markets</h2>
+      </div>
+      <a href="#" class="btn btn-outline">View All Markets →</a>
+    </div>
+    <div class="markets-grid" id="markets-grid">
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ────────────────────────────────────── -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="pricing-header fade-up">
+      <div class="tag">Pricing</div>
+      <h2 class="section-title">Simple, transparent pricing</h2>
+      <p class="section-sub" style="margin:12px auto 0;">Start free. Upgrade when you're ready to go pro.</p>
+    </div>
+    <div class="pricing-grid">
+      <!-- Free -->
+      <div class="plan-card fade-up">
+        <div class="plan-name">STARTER</div>
+        <div class="plan-price"><sup>$</sup>0</div>
+        <div class="plan-period">Free forever</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 5 markets monitored</li>
+          <li><span class="check">✓</span> Basic whale alerts</li>
+          <li><span class="check">✓</span> Daily performance report</li>
+          <li><span class="check">✓</span> Telegram notifications</li>
+          <li><span class="cross">✗</span> Algorithmic signals</li>
+          <li><span class="cross">✗</span> Kelly sizing</li>
+          <li><span class="cross">✗</span> Historical pattern data</li>
+        </ul>
+        <a href="#" class="btn btn-outline" style="width:100%;justify-content:center;">Get Started Free</a>
+      </div>
+      <!-- Pro -->
+      <div class="plan-card popular fade-up">
+        <div class="plan-name">PRO</div>
+        <div class="plan-price"><sup>$</sup>49</div>
+        <div class="plan-period">per month · billed monthly</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> Unlimited markets</li>
+          <li><span class="check">✓</span> Mega-whale alerts (≥$1k)</li>
+          <li><span class="check">✓</span> Full algorithmic signals</li>
+          <li><span class="check">✓</span> Kelly Criterion sizing</li>
+          <li><span class="check">✓</span> Trailing stop automation</li>
+          <li><span class="check">✓</span> Excel reports (4 tabs)</li>
+          <li><span class="check">✓</span> 6-hour P&L summaries</li>
+        </ul>
+        <a href="#" class="btn btn-primary" style="width:100%;justify-content:center;">Start Pro Trial →</a>
+      </div>
+      <!-- Enterprise -->
+      <div class="plan-card fade-up">
+        <div class="plan-name">ENTERPRISE</div>
+        <div class="plan-price"><sup>$</sup>199</div>
+        <div class="plan-period">per month · billed monthly</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> Everything in Pro</li>
+          <li><span class="check">✓</span> Multi-bot deployment</li>
+          <li><span class="check">✓</span> Custom signal thresholds</li>
+          <li><span class="check">✓</span> API access</li>
+          <li><span class="check">✓</span> Dedicated support</li>
+          <li><span class="check">✓</span> White-label option</li>
+          <li><span class="check">✓</span> Custom reporting</li>
+        </ul>
+        <a href="#" class="btn btn-outline" style="width:100%;justify-content:center;">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Testimonials ───────────────────────────────── -->
+<section class="testi">
+  <div class="container">
+    <div class="testi-header fade-up">
+      <div class="tag">Testimonials</div>
+      <h2 class="section-title">Trusted by market makers</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card fade-up">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Gema's whale detection is insane. I caught a $1,200 mega-whale on BTC 15M and followed it — market settled in my favor 3 minutes later. +$34 in one trade."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">RK</div>
+          <div><div class="testi-name">Ryan K.</div><div class="testi-role">Kalshi Pro Trader · 3 months</div></div>
+        </div>
+      </div>
+      <div class="testi-card fade-up">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"The trailing stop saved me twice this week. Used to blow up positions but the $10 stop + 30 min cooldown keeps my bankroll intact. 83% winrate speaks for itself."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">ML</div>
+          <div><div class="testi-name">Maria L.</div><div class="testi-role">Algo Trader · 6 months</div></div>
+        </div>
+      </div>
+      <div class="testi-card fade-up">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Best ROI on any trading tool I've paid for. The compound interest projection tab in the Excel report keeps me motivated. Went from $100 to $215 in 3 weeks."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">DJ</div>
+          <div><div class="testi-name">Dev J.</div><div class="testi-role">Quantitative Analyst · 1 month</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA Banner ──────────────────────────────────── -->
+<div class="container">
+  <div class="cta-banner fade-up">
+    <h2>Ready to make markets work for you?</h2>
+    <p>Join 12,000+ traders using Gema Interprises to capture alpha in prediction markets.</p>
+    <a href="#" class="btn btn-primary" style="font-size:16px;padding:16px 40px;">
+      Start for Free — No credit card needed →
+    </a>
+  </div>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-mark">⬡</div>
+          <div>Gema Interprises<div class="logo-sub">Market Maker</div></div>
+        </div>
+        <p>Institutional-grade prediction market intelligence for the modern trader.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <ul>
+          <li><a href="#">Features</a></li>
+          <li><a href="#">Pricing</a></li>
+          <li><a href="#">Changelog</a></li>
+          <li><a href="#">Roadmap</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Resources</h5>
+        <ul>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">API Reference</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Discord</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Gema Interprises. All rights reserved.</span>
+      <span>Built for Kalshi · Powered by market intelligence</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── Data ────────────────────────────────────────────────────
+const MARKETS_DATA = [
+  { market:"KXBTC15M", name:"BTC Next 15 Min", cat:"CRYPTO", yes:0.62, no:0.38, vol:"$48,210", whale:"🐋 STRONG" },
+  { market:"KXBTCH",   name:"BTC This Hour",   cat:"CRYPTO", yes:0.71, no:0.29, vol:"$92,500", whale:"🐋 STRONG" },
+  { market:"KXBTCD",   name:"BTC Today",        cat:"CRYPTO", yes:0.58, no:0.42, vol:"$124,300", whale:"⚡ MEDIUM" },
+  { market:"KXETH1H",  name:"ETH This Hour",    cat:"CRYPTO", yes:0.45, no:0.55, vol:"$31,800", whale:"—" },
+  { market:"KXFED",    name:"Fed Rate Decision",cat:"MACRO",  yes:0.83, no:0.17, vol:"$204,700", whale:"🐋 STRONG" },
+  { market:"KXSP500",  name:"S&P 500 Up Today", cat:"EQUITY", yes:0.55, no:0.45, vol:"$67,200", whale:"⚡ MEDIUM" },
+];
+
+const TICKER_DATA = [
+  { name:"BTC/USD",  price:"$67,420", chg:"+2.3%", up:true },
+  { name:"KXBTC15M YES", price:"$0.62", chg:"+4.1%", up:true },
+  { name:"KXBTCH YES",   price:"$0.71", chg:"+8.2%", up:true },
+  { name:"ETH/USD",  price:"$3,482",  chg:"-0.8%", up:false },
+  { name:"KXFED YES",    price:"$0.83", chg:"+1.2%", up:true },
+  { name:"KXSP500 YES",  price:"$0.55", chg:"+0.5%", up:true },
+  { name:"KXBTCD YES",   price:"$0.58", chg:"-1.0%", up:false },
+  { name:"SOL/USD",  price:"$142.3",  chg:"+5.6%", up:true },
+];
+
+const TRADE_LOG = [
+  { time:"09:14", market:"KXBTCH", side:"YES", result:"WIN", pnl:"+$8.20" },
+  { time:"10:32", market:"KXBTC15M", side:"YES", result:"WIN", pnl:"+$5.10" },
+  { time:"11:05", market:"KXBTCD", side:"NO",  result:"LOSS", pnl:"-$4.80" },
+  { time:"12:48", market:"KXBTCH", side:"YES", result:"WIN", pnl:"+$3.40" },
+];
+
+// ── Ticker ──────────────────────────────────────────────────
+const tickerEl = document.getElementById('ticker');
+const allTickers = [...TICKER_DATA, ...TICKER_DATA]; // duplicate for seamless loop
+allTickers.forEach(t => {
+  const el = document.createElement('div');
+  el.className = 'ticker-item';
+  el.innerHTML = `
+    <span class="name">${t.name}</span>
+    <span class="price ${t.up ? 'up' : 'dn'}">${t.price}</span>
+    <span class="${t.up ? 'up' : 'dn'}">${t.chg}</span>
+  `;
+  tickerEl.appendChild(el);
+});
+
+// ── Market Table ────────────────────────────────────────────
+const tbody = document.getElementById('market-rows');
+MARKETS_DATA.forEach(m => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="mp-market">${m.market}<small>${m.name}</small></td>
+    <td class="mp-mono badge-yes">${(m.yes * 100).toFixed(0)}¢</td>
+    <td class="mp-mono badge-no">${(m.no  * 100).toFixed(0)}¢</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="bar-wrap"><div class="bar-fill" style="width:${m.yes*100}%"></div></div>
+        <span style="font-size:12px;color:var(--muted);">${(m.yes*100).toFixed(0)}%</span>
+      </div>
+    </td>
+    <td style="font-size:12px;">${m.whale}</td>
+    <td class="mp-mono" style="color:var(--muted)">${m.vol}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// ── Market Cards ────────────────────────────────────────────
+const grid = document.getElementById('markets-grid');
+const CARD_MARKETS = [
+  { cat:"CRYPTO", title:"Will BTC be above $68k at 3:00 PM ET?", yes:"YES 62¢", no:"NO 38¢", vol:"$48.2k" },
+  { cat:"CRYPTO", title:"Will ETH rise more than 1% today?",     yes:"YES 45¢", no:"NO 55¢", vol:"$31.8k" },
+  { cat:"MACRO",  title:"Will the Fed hold rates this meeting?",  yes:"YES 83¢", no:"NO 17¢", vol:"$204k"  },
+  { cat:"EQUITY", title:"Will S&P 500 close positive today?",    yes:"YES 55¢", no:"NO 45¢", vol:"$67.2k" },
+  { cat:"CRYPTO", title:"Will BTC close above $65k today?",      yes:"YES 58¢", no:"NO 42¢", vol:"$124k"  },
+  { cat:"POLITICS", title:"Will the Senate bill pass this week?",yes:"YES 34¢", no:"NO 66¢", vol:"$88.5k" },
+];
+CARD_MARKETS.forEach(m => {
+  const c = document.createElement('div');
+  c.className = 'market-card fade-up';
+  c.innerHTML = `
+    <div class="mc-top">
+      <span class="mc-cat">${m.cat}</span>
+      <span class="mc-vol">Vol ${m.vol}</span>
+    </div>
+    <div class="mc-title">${m.title}</div>
+    <div class="mc-odds">
+      <button class="odd-btn odd-yes"><span class="odd-lbl">YES</span>${m.yes}</button>
+      <button class="odd-btn odd-no"><span class="odd-lbl">NO</span>${m.no}</button>
+    </div>
+  `;
+  grid.appendChild(c);
+});
+
+// ── Trade Log ────────────────────────────────────────────────
+const logEl = document.getElementById('trade-log');
+logEl.innerHTML = TRADE_LOG.map(t => `
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);">
+    <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace">${t.time}</span>
+    <span style="font-size:12px;font-weight:600">${t.market}</span>
+    <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${t.side==='YES'?'rgba(0,229,160,.1)':'rgba(255,77,106,.1)'};color:${t.side==='YES'?'var(--accent)':'var(--red)'}">${t.side}</span>
+    <span style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${t.result==='WIN'?'var(--accent)':'var(--red)'}">${t.pnl}</span>
+  </div>
+`).join('');
+
+// ── Scroll Animations ────────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// ── Live price jitter ────────────────────────────────────────
+function jitter(val, range) {
+  return Math.max(0.01, Math.min(0.99, val + (Math.random() - 0.5) * range));
+}
+setInterval(() => {
+  document.querySelectorAll('.bar-fill').forEach((bar, i) => {
+    const current = parseFloat(bar.style.width) / 100;
+    const next = jitter(current, 0.015);
+    bar.style.width = (next * 100).toFixed(1) + '%';
+    // update yes/no cells
+    const row = bar.closest('tr');
+    if (!row) return;
+    const cells = row.querySelectorAll('td');
+    if (cells[1]) cells[1].textContent = (next * 100).toFixed(0) + '¢';
+    if (cells[2]) cells[2].textContent = ((1-next) * 100).toFixed(0) + '¢';
+    const pct = row.querySelector('span[style*="color:var(--muted)"]');
+    if (pct) pct.textContent = (next * 100).toFixed(0) + '%';
+  });
+}, 2500);
+</script>
+
+</body>
+</html>
