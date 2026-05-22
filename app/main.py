@@ -130,7 +130,7 @@ async def create_checkout(
             "quantity": 1,
         }],
         mode="subscription",
-        success_url=f"{base_url}/dashboard?success=1&plan={plan}",
+        success_url=f"{base_url}/dashboard?success=1&plan={plan}&session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{base_url}/dashboard?canceled=1",
         metadata={"user_id": str(current_user.id), "plan": plan},
     )
@@ -217,6 +217,34 @@ async def settle_signal(
     s.settled_at = datetime.utcnow()
     db.commit()
     return {"status": "settled"}
+
+
+# ── Verify Stripe session & activate plan ────────────────────────
+@app.post("/api/stripe/verify-session")
+async def verify_session(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    body       = await request.json()
+    session_id = body.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id required")
+
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if session.payment_status == "paid" and str(session.metadata.get("user_id")) == str(current_user.id):
+        plan = session.metadata.get("plan", "pro")
+        current_user.plan                   = plan
+        current_user.subscription_status    = "active"
+        current_user.stripe_subscription_id = session.subscription
+        db.commit()
+        return {"plan": plan, "status": "activated"}
+
+    raise HTTPException(status_code=400, detail="Payment not confirmed")
 
 
 # ── Signals (frontend — read only) ───────────────────────────────

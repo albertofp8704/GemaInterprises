@@ -180,12 +180,21 @@ if (!token) window.location.href = '/login';
 const params = new URLSearchParams(window.location.search);
 if (params.get('success')) {
   document.getElementById('alert-success').style.display = 'block';
-  // Update local plan while webhook processes
-  const plan = params.get('plan');
-  if (plan) {
-    const u = JSON.parse(localStorage.getItem('gema_user') || '{}');
-    u.plan = plan; u.subscription_status = 'active';
-    localStorage.setItem('gema_user', JSON.stringify(u));
+  const sessionId = params.get('session_id');
+  if (sessionId) {
+    // Verify payment server-side and activate plan
+    fetch('/api/stripe/verify-session', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ session_id: sessionId }),
+    }).then(r => r.json()).then(data => {
+      if (data.plan) {
+        const u = JSON.parse(localStorage.getItem('gema_user') || '{}');
+        u.plan = data.plan; u.subscription_status = 'active';
+        localStorage.setItem('gema_user', JSON.stringify(u));
+        loadUser(); // refresh badge
+      }
+    }).catch(() => {});
   }
   window.history.replaceState({}, '', '/dashboard');
 }
