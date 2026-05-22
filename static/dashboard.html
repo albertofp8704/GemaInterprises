@@ -176,13 +176,15 @@ const API = '';
 const token = localStorage.getItem('gema_token');
 if (!token) window.location.href = '/login';
 
+// ── Helper (defined FIRST so it's available everywhere) ─────────
+const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' });
+
 // ── URL params ──────────────────────────────────────────────────
 const params = new URLSearchParams(window.location.search);
 if (params.get('success')) {
   document.getElementById('alert-success').style.display = 'block';
   const sessionId = params.get('session_id');
   if (sessionId) {
-    // Verify payment server-side and activate plan
     fetch('/api/stripe/verify-session', {
       method: 'POST',
       headers: authHeaders(),
@@ -192,7 +194,7 @@ if (params.get('success')) {
         const u = JSON.parse(localStorage.getItem('gema_user') || '{}');
         u.plan = data.plan; u.subscription_status = 'active';
         localStorage.setItem('gema_user', JSON.stringify(u));
-        loadUser(); // refresh badge
+        loadUser();
       }
     }).catch(() => {});
   }
@@ -202,9 +204,6 @@ if (params.get('canceled')) {
   document.getElementById('alert-cancel').style.display = 'block';
   window.history.replaceState({}, '', '/dashboard');
 }
-
-// ── Helper ──────────────────────────────────────────────────────
-const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' });
 
 function logout() {
   localStorage.removeItem('gema_token');
