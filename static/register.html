@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — Gema Interprises</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#03060f;--bg2:#070c1a;--border:rgba(255,255,255,.07);--accent:#00C805;--gold:#C9A84C;--red:#FF2D55;--text:#E8EDF5;--muted:#556070}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(0,200,5,.08),transparent 70%);pointer-events:none}
+    .logo{display:flex;align-items:center;gap:10px;margin-bottom:40px;text-decoration:none;color:var(--text)}
+    .logo-mark{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#00C805,#C9A84C);display:flex;align-items:center;justify-content:center;font-size:18px}
+    .logo-name{font-size:18px;font-weight:800;letter-spacing:-.03em}
+    .logo-sub{font-size:11px;color:var(--muted);font-weight:400}
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:440px}
+    h1{font-size:24px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+    .subtitle{color:var(--muted);font-size:14px;margin-bottom:28px}
+    .plans{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:24px}
+    .plan-opt{border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.02)}
+    .plan-opt:hover{border-color:rgba(0,200,5,.3)}
+    .plan-opt.active{border-color:#00C805;background:rgba(0,200,5,.08)}
+    .plan-opt.popular-opt{border-color:rgba(201,168,76,.3)}
+    .plan-opt.popular-opt.active{border-color:#C9A84C;background:rgba(201,168,76,.08)}
+    .plan-price{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--text)}
+    .plan-name{font-size:11px;color:var(--muted);margin-top:2px}
+    .plan-badge{font-size:9px;font-weight:700;background:linear-gradient(90deg,#00C805,#C9A84C);color:#000;border-radius:4px;padding:1px 6px;display:inline-block;margin-bottom:4px}
+    .field{margin-bottom:16px}
+    label{display:block;font-size:12px;font-weight:600;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+    input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
+    input:focus{border-color:rgba(0,200,5,.4)}
+    input::placeholder{color:var(--muted)}
+    .btn{width:100%;padding:13px;border-radius:8px;border:none;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px}
+    .btn-primary{background:var(--accent);color:#03060f}
+    .btn-primary:hover{background:#00e506;transform:translateY(-1px)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .terms{font-size:12px;color:var(--muted);text-align:center;margin-top:14px}
+    .divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:12px}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .link{text-align:center;font-size:14px;color:var(--muted);margin-top:16px}
+    .link a{color:var(--accent);text-decoration:none;font-weight:600}
+    .error{background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;display:none}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <a href="/" class="logo">
+    <div class="logo-mark">⬡</div>
+    <div><div class="logo-name">Gema Interprises</div><div class="logo-sub">Market Maker</div></div>
+  </a>
+
+  <div class="card">
+    <h1>Start trading smarter</h1>
+    <p class="subtitle">Create your account and choose a plan</p>
+
+    <!-- Plan selector -->
+    <div class="plans">
+      <div class="plan-opt active" data-plan="free">
+        <div class="plan-price">$0</div>
+        <div class="plan-name">Starter</div>
+      </div>
+      <div class="plan-opt popular-opt" data-plan="pro">
+        <div class="plan-badge">POPULAR</div>
+        <div class="plan-price">$49</div>
+        <div class="plan-name">Pro / mo</div>
+      </div>
+      <div class="plan-opt" data-plan="enterprise">
+        <div class="plan-price">$199</div>
+        <div class="plan-name">Enterprise</div>
+      </div>
+    </div>
+
+    <div class="error" id="error-msg"></div>
+
+    <form id="register-form">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Min 8 characters" minlength="8" required />
+      </div>
+      <button type="submit" class="btn btn-primary" id="submit-btn">Create Account →</button>
+    </form>
+
+    <p class="terms">By registering you agree to our Terms of Service.</p>
+    <div class="divider">or</div>
+    <div class="link">Already have an account? <a href="/login">Sign in</a></div>
+  </div>
+
+  <script>
+    if (localStorage.getItem('gema_token')) window.location.href = '/dashboard';
+
+    let selectedPlan = 'free';
+    document.querySelectorAll('.plan-opt').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.plan-opt').forEach(o => o.classList.remove('active'));
+        el.classList.add('active');
+        selectedPlan = el.dataset.plan;
+        const btn = document.getElementById('submit-btn');
+        btn.textContent = selectedPlan === 'free' ? 'Create Free Account →' : `Continue to Payment →`;
+      });
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      const err = document.getElementById('error-msg');
+      err.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Creating account...';
+
+      try {
+        const res  = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email:    document.getElementById('email').value,
+            password: document.getElementById('password').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Registration failed');
+
+        localStorage.setItem('gema_token', data.token);
+        localStorage.setItem('gema_user',  JSON.stringify(data.user));
+
+        if (selectedPlan !== 'free') {
+          // Redirect to Stripe checkout
+          const checkout = await fetch(`/api/stripe/create-checkout/${selectedPlan}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${data.token}` },
+          });
+          const { url } = await checkout.json();
+          window.location.href = url;
+        } else {
+          window.location.href = '/dashboard';
+        }
+      } catch (ex) {
+        err.textContent   = ex.message;
+        err.style.display = 'block';
+        btn.disabled      = false;
+        btn.textContent   = 'Create Account →';
+      }
+    });
+  </script>
+</body>
+</html>

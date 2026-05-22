@@ -1,0 +1,54 @@
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from datetime import datetime
+import os
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./gema.db")
+
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = "users"
+    id                     = Column(Integer, primary_key=True, index=True)
+    email                  = Column(String, unique=True, index=True, nullable=False)
+    password_hash          = Column(String, nullable=False)
+    plan                   = Column(String, default="free")        # free | pro | enterprise
+    stripe_customer_id     = Column(String, nullable=True)
+    stripe_subscription_id = Column(String, nullable=True)
+    subscription_status    = Column(String, default="inactive")    # active | inactive | canceled
+    telegram_chat_id       = Column(String, nullable=True)
+    created_at             = Column(DateTime, default=datetime.utcnow)
+    is_active              = Column(Boolean, default=True)
+
+
+class Signal(Base):
+    __tablename__ = "signals"
+    id           = Column(Integer, primary_key=True, index=True)
+    market       = Column(String, nullable=False)
+    side         = Column(String, nullable=False)       # YES | NO
+    signal_type  = Column(String, nullable=False)       # STRONG | MEDIUM
+    whale_amount = Column(Float, nullable=False)
+    entry_price  = Column(Float, nullable=False)
+    timestamp    = Column(DateTime, default=datetime.utcnow)
+    result       = Column(String, nullable=True)        # WIN | LOSS | PENDING
+    pnl          = Column(Float, nullable=True)
+    settled_at   = Column(DateTime, nullable=True)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
