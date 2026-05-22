@@ -24,7 +24,9 @@ app.add_middleware(
 
 stripe.api_key            = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET     = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-INTERNAL_API_KEY          = os.getenv("INTERNAL_API_KEY", "gema-internal-key-change-me")
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
+if not INTERNAL_API_KEY:
+    raise RuntimeError("INTERNAL_API_KEY env var is required — set it in Railway")
 
 PLANS = {
     "pro":        {"name": "Gema Pro",        "amount": 4900},
