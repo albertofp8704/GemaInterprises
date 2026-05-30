@@ -30,7 +30,7 @@ def main(page: ft.Page):
 
     def show_auth():
         nav_ref.current.visible = False
-        swap(auth.build(page, api, state, on_login=on_login))
+        swap(auth.build(page, api, on_login=on_login))
         page.update()
 
     def on_login(data: dict):
@@ -91,20 +91,8 @@ def main(page: ft.Page):
         ], spacing=0, expand=True),
     )
 
-    # ── Boot: check saved session ─────────────────────────────────────────────
-    saved_token = page.client_storage.get("goat_token")
-    if saved_token:
-        api.token = saved_token
-        try:
-            user = api.me()
-            state["user"] = user
-            nav_ref.current.visible = True
-            show_tab(0)
-        except Exception:
-            page.client_storage.remove("goat_token")
-            show_auth()
-    else:
-        show_auth()
+    # ── Boot ─────────────────────────────────────────────────────────────────
+    show_auth()
 
     page.update()
 
