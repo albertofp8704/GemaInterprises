@@ -167,10 +167,10 @@ class FlashCard(Base):
     rarity      = Column(String(20), default="common")  # common|rare|epic|legendary
     card_type   = Column(String(30), default="player")  # player|tactic|stadium|moment
     image_url   = Column(String, nullable=True)
-    token_price = Column(Integer, default=50)
-    supply      = Column(Integer, nullable=True)   # null = unlimited
-    minted      = Column(Integer, default=0)
-    metadata    = Column(JSON, default=dict)
+    token_price  = Column(Integer, default=50)
+    supply       = Column(Integer, nullable=True)   # null = unlimited
+    minted       = Column(Integer, default=0)
+    card_metadata = Column(JSON, default=dict)
     created_at  = Column(DateTime, default=datetime.utcnow)
 
 

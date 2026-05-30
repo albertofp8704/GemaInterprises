@@ -126,8 +126,8 @@ def _serialize_card(c: FlashCard) -> dict:
         "rarity":      c.rarity,
         "card_type":   c.card_type,
         "image_url":   c.image_url,
-        "token_price": c.token_price,
-        "supply":      c.supply,
-        "minted":      c.minted,
-        "metadata":    c.metadata,
+        "token_price":   c.token_price,
+        "supply":        c.supply,
+        "minted":        c.minted,
+        "card_metadata": c.card_metadata,
     }

@@ -60,16 +60,16 @@ WC_MATCHES = [
 ]
 
 FLASH_CARDS = [
-    dict(name="Lionel Messi - GOAT Edition",   description="The greatest of all time. 2022 Champion.",              rarity="legendary", card_type="player",  token_price=500, supply=100,  metadata={"nation": "Argentina", "wc_wins": 1}),
-    dict(name="Cristiano Ronaldo - Legacy",    description="Legacy card for the all-time top scorer.",              rarity="legendary", card_type="player",  token_price=500, supply=100,  metadata={"nation": "Portugal",  "goals": 900}),
-    dict(name="Vinicius Jr - Villain Arc",     description="Activated his villain arc and never looked back.",      rarity="epic",      card_type="player",  token_price=200, supply=500,  metadata={"nation": "Brazil",    "position": "LW"}),
-    dict(name="Jude Bellingham - Era",         description="He defined a generation. His era is now.",              rarity="epic",      card_type="player",  token_price=200, supply=500,  metadata={"nation": "England",   "position": "CM"}),
-    dict(name="Kylian Mbappé - Speed Run",     description="Fastest man in football. Legendary pace card.",         rarity="epic",      card_type="player",  token_price=200, supply=500,  metadata={"nation": "France",    "position": "ST"}),
-    dict(name="Estadio Azteca - Opening Night",description="The legendary venue where WC 2026 kicks off.",          rarity="rare",      card_type="stadium", token_price=75,  supply=2000, metadata={"city": "Mexico City", "capacity": 83000}),
-    dict(name="MetLife Stadium - The Final",   description="Where legends become GOATs. WC 2026 Final venue.",      rarity="rare",      card_type="stadium", token_price=75,  supply=2000, metadata={"city": "New York",    "capacity": 82500}),
-    dict(name="Total Press - Tactic Card",     description="High press, no mercy. Villain Arc approved.",           rarity="rare",      card_type="tactic",  token_price=50,  supply=None, metadata={"style": "high-press"}),
-    dict(name="Tiki-Taka - Tactic Card",       description="Control the game. Control your life.",                  rarity="common",    card_type="tactic",  token_price=25,  supply=None, metadata={"style": "possession"}),
-    dict(name="Counter-Attack - Tactic Card",  description="Let them come. Strike when it matters.",                rarity="common",    card_type="tactic",  token_price=25,  supply=None, metadata={"style": "counter"}),
+    dict(name="Lionel Messi - GOAT Edition",   description="The greatest of all time. 2022 Champion.",              rarity="legendary", card_type="player",  token_price=500, supply=100,  card_metadata={"nation": "Argentina", "wc_wins": 1}),
+    dict(name="Cristiano Ronaldo - Legacy",    description="Legacy card for the all-time top scorer.",              rarity="legendary", card_type="player",  token_price=500, supply=100,  card_metadata={"nation": "Portugal",  "goals": 900}),
+    dict(name="Vinicius Jr - Villain Arc",     description="Activated his villain arc and never looked back.",      rarity="epic",      card_type="player",  token_price=200, supply=500,  card_metadata={"nation": "Brazil",    "position": "LW"}),
+    dict(name="Jude Bellingham - Era",         description="He defined a generation. His era is now.",              rarity="epic",      card_type="player",  token_price=200, supply=500,  card_metadata={"nation": "England",   "position": "CM"}),
+    dict(name="Kylian Mbappé - Speed Run",     description="Fastest man in football. Legendary pace card.",         rarity="epic",      card_type="player",  token_price=200, supply=500,  card_metadata={"nation": "France",    "position": "ST"}),
+    dict(name="Estadio Azteca - Opening Night",description="The legendary venue where WC 2026 kicks off.",          rarity="rare",      card_type="stadium", token_price=75,  supply=2000, card_metadata={"city": "Mexico City", "capacity": 83000}),
+    dict(name="MetLife Stadium - The Final",   description="Where legends become GOATs. WC 2026 Final venue.",      rarity="rare",      card_type="stadium", token_price=75,  supply=2000, card_metadata={"city": "New York",    "capacity": 82500}),
+    dict(name="Total Press - Tactic Card",     description="High press, no mercy. Villain Arc approved.",           rarity="rare",      card_type="tactic",  token_price=50,  supply=None, card_metadata={"style": "high-press"}),
+    dict(name="Tiki-Taka - Tactic Card",       description="Control the game. Control your life.",                  rarity="common",    card_type="tactic",  token_price=25,  supply=None, card_metadata={"style": "possession"}),
+    dict(name="Counter-Attack - Tactic Card",  description="Let them come. Strike when it matters.",                rarity="common",    card_type="tactic",  token_price=25,  supply=None, card_metadata={"style": "counter"}),
 ]
 
 

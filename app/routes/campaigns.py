@@ -111,7 +111,7 @@ async def update_campaign(
     ).first()
     if not c:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    for field, value in body.dict(exclude_none=True).items():
+    for field, value in body.model_dump(exclude_none=True).items():
         setattr(c, field, value)
     db.commit()
     return _serialize(c)
