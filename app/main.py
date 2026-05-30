@@ -10,9 +10,23 @@ from datetime import datetime
 
 from .database import get_db, init_db, User, Signal
 from .auth import get_current_user, register_user, login_user
+from . import models_goat  # registers GOAT Arc tables on Base.metadata
+from .routes.profile     import router as profile_router
+from .routes.quests      import router as quests_router
+from .routes.predictions import router as predictions_router
+from .routes.villain     import router as villain_router
+from .routes.campaigns   import router as campaigns_router
+from .routes.legacy      import router as legacy_router
+from .routes.tokens      import router as tokens_router
 
 # ── App setup ────────────────────────────────────────────────────
 app = FastAPI(title="Gema Interprises API", version="1.0.0")
+
+for _router in (
+    profile_router, quests_router, predictions_router,
+    villain_router, campaigns_router, legacy_router, tokens_router,
+):
+    app.include_router(_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,6 +69,8 @@ class SettleIn(BaseModel):
 @app.on_event("startup")
 async def startup():
     init_db()
+    from .seed_goat import seed
+    seed()
 
 
 # ── Static files ─────────────────────────────────────────────────
