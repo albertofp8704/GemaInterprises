@@ -2,6 +2,24 @@ import flet as ft
 from ..theme import *
 from ..api import APIClient, APIError
 
+AVATAR_EMOJIS = [
+    "🐐", "👑", "😈", "🔥",
+    "⚽", "🏆", "💀", "⚡",
+    "🎯", "🚀", "💎", "🌟",
+    "🦁", "🐺", "👊", "🎭",
+]
+
+TITLES = [
+    "El GOAT 🐐",
+    "El Villano 😈",
+    "El Leyenda 👑",
+    "El Predictor 🔮",
+    "El Conquistador ⚔️",
+    "El Campeón 🏆",
+    "El Imparable 🔥",
+    "Sin título",
+]
+
 
 def _tx_rows(history: list) -> list:
     if not history:
@@ -16,6 +34,22 @@ def _tx_rows(history: list) -> list:
                     size=13, color=ACCENT if tx["amount"] > 0 else RED, weight=ft.FontWeight.W_600),
         ], spacing=8))
     return rows
+
+
+def _is_emoji_avatar(val: str) -> bool:
+    return bool(val) and not val.startswith("http") and "::" not in val
+
+
+def _parse_avatar(val: str):
+    """Returns (emoji_or_None, title_or_None)."""
+    if not val:
+        return None, None
+    if "::" in val:
+        parts = val.split("::", 1)
+        return parts[0] or None, parts[1] or None
+    if _is_emoji_avatar(val):
+        return val, None
+    return None, None
 
 
 def build(page: ft.Page, api: APIClient, state: dict, on_logout):
@@ -42,34 +76,176 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
         if profile.get("predictions_made", 0) > 0:
             accuracy = round(profile["predictions_correct"] / profile["predictions_made"] * 100, 1)
 
-        # ── Avatar ────────────────────────────────────────────────────────────
-        avatar_card = ft.Container(
-            content=ft.Column([
-                ft.Container(
-                    content=ft.Text(username[0].upper(), size=40, color=TEXT, weight=ft.FontWeight.BOLD),
-                    width=80, height=80, bgcolor=PRIMARY, border_radius=40,
-                    alignment=ft.Alignment.CENTER,
-                    shadow=ft.BoxShadow(blur_radius=20, color=PRIMARY, spread_radius=2),
+        raw_avatar             = profile.get("avatar_url", "")
+        avatar_emoji, av_title = _parse_avatar(raw_avatar)
+
+        # ── Edit profile sheet ────────────────────────────────────────────────
+        def _show_edit():
+            sel = {"emoji": avatar_emoji, "title": av_title or "Sin título"}
+
+            # Preview avatar (updated live)
+            preview = ft.Container(
+                content=ft.Text(avatar_emoji or username[0].upper(), size=48,
+                                color=TEXT if not avatar_emoji else None,
+                                weight=ft.FontWeight.BOLD),
+                width=100, height=100,
+                bgcolor=SURFACE if avatar_emoji else PRIMARY,
+                border_radius=50,
+                alignment=ft.Alignment.CENTER,
+                shadow=ft.BoxShadow(blur_radius=24, color=PRIMARY, spread_radius=3),
+            )
+
+            emoji_cells = {}
+
+            def _pick_emoji(em):
+                sel["emoji"] = em
+                preview.content = ft.Text(em, size=48)
+                preview.bgcolor = SURFACE
+                for e2, cell in emoji_cells.items():
+                    cell.border = ft.Border.all(2, PRIMARY if e2 == em else BORDER)
+                    cell.bgcolor = "#2d1f5e" if e2 == em else CARD
+                page.update()
+
+            # Build 4-column emoji grid
+            emoji_rows = []
+            for row_start in range(0, len(AVATAR_EMOJIS), 4):
+                row_emojis = AVATAR_EMOJIS[row_start:row_start + 4]
+                cells = []
+                for em in row_emojis:
+                    is_sel = em == avatar_emoji
+                    cell = ft.Container(
+                        content=ft.Text(em, size=28),
+                        width=66, height=66,
+                        bgcolor="#2d1f5e" if is_sel else CARD,
+                        border_radius=16,
+                        border=ft.Border.all(2, PRIMARY if is_sel else BORDER),
+                        alignment=ft.Alignment.CENTER,
+                        on_click=lambda e, x=em: _pick_emoji(x),
+                    )
+                    emoji_cells[em] = cell
+                    cells.append(cell)
+                emoji_rows.append(ft.Row(cells, spacing=8, alignment=ft.MainAxisAlignment.CENTER))
+
+            username_f = text_input("Username", hint="@leyenda")
+            username_f.value = username
+
+            title_dd = ft.Dropdown(
+                label="Tu título",
+                value=sel["title"] if sel["title"] in TITLES else "Sin título",
+                options=[ft.DropdownOption(key=t, text=t) for t in TITLES],
+                bgcolor=SURFACE, border_color=BORDER, border_radius=12, color=TEXT,
+                on_select=lambda e: sel.update({"title": e.control.value}),
+            )
+
+            def _save(e):
+                new_name  = username_f.value.strip() or username
+                em        = sel["emoji"]
+                title     = sel["title"] if sel["title"] != "Sin título" else ""
+                avatar_val = f"{em}::{title}" if em and title else (em or "")
+                try:
+                    api.update_profile(
+                        username=new_name if new_name != username else None,
+                        avatar_url=avatar_val or None,
+                    )
+                    page.pop_dialog()
+                    snack(page, "Perfil actualizado ✓")
+                    load()
+                except APIError as ex:
+                    snack(page, str(ex), RED)
+
+            bs = ft.BottomSheet(
+                content=ft.Container(
+                    content=ft.Column([
+                        ft.Row([
+                            h2("Editar perfil"),
+                            ft.IconButton(
+                                icon=ft.Icons.CLOSE, icon_color=MUTED, icon_size=20,
+                                on_click=lambda _: page.pop_dialog(),
+                            ),
+                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                        ft.Container(height=8),
+                        preview,
+                        ft.Container(height=12),
+                        muted("Elige tu avatar"),
+                        ft.Container(height=8),
+                        *emoji_rows,
+                        ft.Container(height=12),
+                        username_f,
+                        ft.Container(height=8),
+                        title_dd,
+                        ft.Container(height=16),
+                        primary_btn("Guardar cambios ✓", on_click=_save, expand=True, color=ACCENT),
+                        ft.Container(height=8),
+                    ], spacing=6,
+                       horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                       scroll=ft.ScrollMode.AUTO),
+                    bgcolor=CARD,
+                    padding=ft.Padding.only(left=24, right=24, top=24, bottom=0),
+                    border_radius=ft.BorderRadius.only(top_left=24, top_right=24),
                 ),
-                h1(f"@{username}", size=20),
-                muted(f"Level {level} · {xp} XP total"),
-                ft.Container(height=4),
-                xp_bar(xp, level),
-            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
-            bgcolor=CARD,
+                bgcolor=CARD,
+            )
+            page.show_dialog(bs)
+
+        # ── Avatar card ───────────────────────────────────────────────────────
+        if avatar_emoji:
+            avatar_widget = ft.Text(avatar_emoji, size=52)
+            avatar_bg     = SURFACE
+        else:
+            avatar_widget = ft.Text(username[0].upper(), size=40, color=TEXT, weight=ft.FontWeight.BOLD)
+            avatar_bg     = PRIMARY
+
+        title_row = (
+            ft.Row([badge(av_title, color=PRI_L, size=10)],
+                   alignment=ft.MainAxisAlignment.CENTER)
+            if av_title else ft.Container(height=0)
+        )
+
+        avatar_card = ft.Container(
+            content=ft.Stack([
+                ft.Container(
+                    content=ft.Column([
+                        ft.Container(
+                            content=avatar_widget,
+                            width=90, height=90, bgcolor=avatar_bg, border_radius=45,
+                            alignment=ft.Alignment.CENTER,
+                            shadow=ft.BoxShadow(blur_radius=24, color=PRIMARY, spread_radius=3),
+                        ),
+                        h1(f"@{username}", size=20),
+                        title_row,
+                        muted(f"Level {level} · {xp} XP total"),
+                        ft.Container(height=4),
+                        xp_bar(xp, level),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
+                    padding=ft.Padding.only(top=20, bottom=20, left=20, right=20),
+                ),
+                ft.Container(
+                    content=ft.IconButton(
+                        icon=ft.Icons.EDIT, icon_color=MUTED, icon_size=18,
+                        on_click=lambda _: _show_edit(),
+                        tooltip="Editar perfil",
+                    ),
+                    alignment=ft.Alignment.TOP_RIGHT,
+                    padding=ft.Padding.only(top=8, right=8),
+                ),
+            ]),
+            gradient=ft.LinearGradient(
+                begin=ft.Alignment.TOP_LEFT,
+                end=ft.Alignment.BOTTOM_RIGHT,
+                colors=["#1a1040", "#1a1a2e"],
+            ),
             border_radius=20,
-            padding=24,
             border=ft.Border.all(1, PRIMARY),
         )
 
         # ── Stats grid ────────────────────────────────────────────────────────
-        stats = ft.Row([
-            stat_tile("Quests",       profile.get("quests_completed", 0),   ft.Icons.CHECKLIST,   ACCENT),
-            stat_tile("Predicciones", profile.get("predictions_made", 0),   ft.Icons.TRACK_CHANGES, GOLD),
+        stats  = ft.Row([
+            stat_tile("Quests",       profile.get("quests_completed", 0),  ft.Icons.CHECKLIST,         ACCENT),
+            stat_tile("Predicciones", profile.get("predictions_made", 0),  ft.Icons.TRACK_CHANGES,     GOLD),
         ], spacing=8)
         stats2 = ft.Row([
-            stat_tile("Legados",  profile.get("legacies_dropped", 0), ft.Icons.PLACE,               PRI_L),
-            stat_tile("Racha",    profile.get("current_streak", 0),   ft.Icons.LOCAL_FIRE_DEPARTMENT, VILLAIN),
+            stat_tile("Legados",  profile.get("legacies_dropped", 0),  ft.Icons.PLACE,                PRI_L),
+            stat_tile("Racha",    profile.get("current_streak", 0),    ft.Icons.LOCAL_FIRE_DEPARTMENT, VILLAIN),
         ], spacing=8)
 
         # ── Token balance ─────────────────────────────────────────────────────
@@ -96,12 +272,8 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                 snack(page, str(ex), RED)
 
         card_grid = ft.GridView(
-            runs_count=2,
-            max_extent=200,
-            child_aspect_ratio=0.75,
-            spacing=8,
-            run_spacing=8,
-            expand=False,
+            runs_count=2, max_extent=200, child_aspect_ratio=0.75,
+            spacing=8, run_spacing=8, expand=False,
         )
         for fc in shop[:8]:
             r_color = RARITY_COLOR.get(fc["rarity"], MUTED)
@@ -125,11 +297,9 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                             on_click=(lambda e, cid=fc["id"], cn=fc["name"], cp=fc["token_price"]: _buy(cid, cn, cp)) if not owned else lambda e: None,
                             color=BORDER if owned else r_color,
                             disabled=owned,
-                        ) if not owned or True else ft.Container(),
+                        ),
                     ], spacing=4, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                    bgcolor=CARD,
-                    border_radius=14,
-                    padding=10,
+                    bgcolor=CARD, border_radius=14, padding=10,
                     border=ft.Border.all(2, r_color if owned else BORDER),
                 )
             )
