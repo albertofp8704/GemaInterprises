@@ -18,6 +18,7 @@ from .routes.villain     import router as villain_router
 from .routes.campaigns   import router as campaigns_router
 from .routes.legacy      import router as legacy_router
 from .routes.tokens      import router as tokens_router
+from .routes.wallet      import router as wallet_router
 
 # ── App setup ────────────────────────────────────────────────────
 app = FastAPI(title="Gema Interprises API", version="1.0.0")
@@ -25,6 +26,7 @@ app = FastAPI(title="Gema Interprises API", version="1.0.0")
 for _router in (
     profile_router, quests_router, predictions_router,
     villain_router, campaigns_router, legacy_router, tokens_router,
+    wallet_router,
 ):
     app.include_router(_router)
 
