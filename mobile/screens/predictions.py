@@ -58,15 +58,21 @@ def build(page: ft.Page, api: APIClient, state: dict):
         stage = stage_labels.get(m.get("stage", ""), m.get("stage", ""))
         city  = m.get("city", "")
 
-        home_score_f = text_input("", hint="0")
-        away_score_f = text_input("", hint="0")
-        home_score_f.width = 60
-        away_score_f.width = 60
+        _score_opts = [ft.DropdownOption(key=str(i), text=str(i)) for i in range(11)]
+
+        home_score_f = ft.Dropdown(
+            value="0", options=_score_opts, width=80,
+            bgcolor=SURFACE, border_color=BORDER, border_radius=10, color=TEXT,
+        )
+        away_score_f = ft.Dropdown(
+            value="0", options=_score_opts, width=80,
+            bgcolor=SURFACE, border_color=BORDER, border_radius=10, color=TEXT,
+        )
 
         def _predict(e):
             try:
-                h = int(home_score_f.value or 0)
-                a = int(away_score_f.value or 0)
+                h = int(home_score_f.value or "0")
+                a = int(away_score_f.value or "0")
                 api.predict_match(m["id"], h, a)
                 page.pop_dialog()
                 snack(page, f"Predicción guardada: {m['team_home']} {h} - {a} {m['team_away']} 🔒")
