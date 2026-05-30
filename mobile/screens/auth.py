@@ -12,7 +12,7 @@ def build(page: ft.Page, api: APIClient, on_login):
     username_f = text_input("Username (tu apodo GOAT)", hint="@leyenda")
     error_txt  = ft.Text("", color=RED, size=13)
     submit_btn = primary_btn("Entrar", on_click=None, expand=True)
-    toggle_btn = ft.TextButton("", style=ft.ButtonStyle(color=PRI_L))
+    toggle_btn = ft.TextButton(content="¿No tienes cuenta? Regístrate", style=ft.ButtonStyle(color=PRI_L))
 
     def _submit(e):
         email = email_f.value.strip()
@@ -52,10 +52,10 @@ def build(page: ft.Page, api: APIClient, on_login):
 
     def _refresh():
         is_reg = mode["v"] == "register"
-        submit_btn.text   = "Crear cuenta" if is_reg else "Entrar"
-        toggle_btn.text   = "¿Ya tienes cuenta? Inicia sesión" if is_reg else "¿No tienes cuenta? Regístrate"
+        submit_btn.content   = "Crear cuenta" if is_reg else "Entrar"
+        toggle_btn.content   = "¿Ya tienes cuenta? Inicia sesión" if is_reg else "¿No tienes cuenta? Regístrate"
         username_row.content = username_f if is_reg else ft.Container()
-        error_txt.value   = ""
+        error_txt.value      = ""
         page.update()
 
     _refresh()
