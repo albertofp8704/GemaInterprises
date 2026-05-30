@@ -288,7 +288,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                 top = ft.Container(
                     content=ft.Image(
                         src=img_url,
-                        fit=ft.ImageFit.COVER,
+                        fit=ft.BoxFit.COVER,
                         error_content=ft.Text(fallback_emoji, size=32),
                     ),
                     height=115,
