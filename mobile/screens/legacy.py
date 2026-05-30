@@ -180,10 +180,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
         selected_index=0,
         animation_duration=200,
         on_change=lambda e: (view_mode.update({"v": "nearby" if e.control.selected_index == 0 else "mine"}), load()),
-        tabs=[ft.Tab(label="Cercanos 📍"), ft.Tab(label="Mis legados ✍️")],
-        indicator_color=PRIMARY,
-        label_color=TEXT,
-        unselected_label_color=MUTED,
+        controls=[ft.Tab(label="Cercanos 📍"), ft.Tab(label="Mis legados ✍️")],
     )
 
     load()

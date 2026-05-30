@@ -174,13 +174,10 @@ def build(page: ft.Page, api: APIClient, state: dict):
         selected_index=0,
         animation_duration=200,
         on_change=_on_tab_change,
-        tabs=[
+        controls=[
             ft.Tab(label="Partidos ⚽"),
             ft.Tab(label="Mis predicciones 🔮"),
         ],
-        indicator_color=PRIMARY,
-        label_color=TEXT,
-        unselected_label_color=MUTED,
     )
 
     return ft.Container(
