@@ -15,7 +15,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
         nearby_col.controls.clear()
         nearby_col.controls.append(ft.Container(height=4))
         try:
-            items = api.nearby_legacies(DEFAULT_LAT, DEFAULT_LNG, radius_km=50)
+            items = api.nearby_legacies(DEFAULT_LAT, DEFAULT_LNG, radius=50)
         except APIError as e:
             nearby_col.controls.append(ft.Text(str(e), color=RED))
             page.update()
