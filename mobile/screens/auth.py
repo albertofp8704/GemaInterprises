@@ -1,30 +1,31 @@
 import flet as ft
 from ..theme import *
 from ..api import APIClient, APIError
+from .. import i18n
 
 
 def build(page: ft.Page, api: APIClient, on_login):
     """Returns the auth screen content (login / register toggle)."""
     mode = {"v": "login"}  # "login" | "register"
 
-    email_f    = text_input("Email", hint="tu@email.com")
-    password_f = text_input("Contraseña", password=True)
-    username_f = text_input("Username (tu apodo GOAT)", hint="@leyenda")
+    email_f    = text_input(i18n.t("auth.email"), hint="tu@email.com")
+    password_f = text_input(i18n.t("auth.password"), password=True)
+    username_f = text_input(i18n.t("auth.username_lbl"), hint="@leyenda")
     error_txt  = ft.Text("", color=RED, size=13)
-    submit_btn = primary_btn("Entrar", on_click=None, expand=True)
-    toggle_btn = ft.TextButton(content="¿No tienes cuenta? Regístrate", style=ft.ButtonStyle(color=PRI_L))
+    submit_btn = primary_btn(i18n.t("auth.enter"), on_click=None, expand=True)
+    toggle_btn = ft.TextButton(content=i18n.t("auth.no_account"), style=ft.ButtonStyle(color=PRI_L))
 
     def _submit(e):
         email = email_f.value.strip()
         pwd   = password_f.value
         if not email or not pwd:
-            error_txt.value = "Rellena todos los campos"
+            error_txt.value = i18n.t("auth.fill_fields")
             page.update()
             return
         try:
             if mode["v"] == "register":
                 if not username_f.value.strip():
-                    error_txt.value = "Elige un username"
+                    error_txt.value = i18n.t("auth.choose_username")
                     page.update()
                     return
                 data = api.register(email, pwd)
@@ -52,8 +53,8 @@ def build(page: ft.Page, api: APIClient, on_login):
 
     def _refresh():
         is_reg = mode["v"] == "register"
-        submit_btn.content   = "Crear cuenta" if is_reg else "Entrar"
-        toggle_btn.content   = "¿Ya tienes cuenta? Inicia sesión" if is_reg else "¿No tienes cuenta? Regístrate"
+        submit_btn.content   = i18n.t("auth.create_account") if is_reg else i18n.t("auth.enter")
+        toggle_btn.content   = i18n.t("auth.have_account") if is_reg else i18n.t("auth.no_account")
         username_row.content = username_f if is_reg else ft.Container()
         error_txt.value      = ""
         page.update()
@@ -64,7 +65,7 @@ def build(page: ft.Page, api: APIClient, on_login):
         ft.Text("GOAT", size=52, color=PRIMARY, weight=ft.FontWeight.W_900, style=ft.TextStyle(letter_spacing=-2)),
         ft.Text("ARC", size=52, color=GOLD, weight=ft.FontWeight.W_900, style=ft.TextStyle(letter_spacing=-2)),
         ft.Container(height=4),
-        muted("Escribe tu historia. Gana tu legado.", size=14),
+        muted(i18n.t("auth.tagline"), size=14),
     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0)
 
     return ft.Container(

@@ -1,6 +1,7 @@
 import flet as ft
 from ..theme import *
 from ..api import APIClient, APIError
+from .. import i18n
 
 
 def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
@@ -19,8 +20,8 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
         if not quests:
             list_col.controls.append(card(ft.Column([
                 ft.Text("🎯", size=40),
-                body("No hay quests disponibles hoy", size=16),
-                muted("Vuelve mañana"),
+                body(i18n.t("quests.empty"), size=16),
+                muted(i18n.t("quests.come_back")),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
             page.update()
             return
@@ -37,7 +38,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
         d_color = DIFF_COLOR.get(diff, PRIMARY)
         c_color = CAT_COLOR.get(cat, PRIMARY)
 
-        reflection_f = text_input("Reflexión (opcional)", hint="¿Cómo te fue?...", multiline=True)
+        reflection_f = text_input(i18n.t("quests.reflection"), hint=i18n.t("quests.reflection_hint"), multiline=True)
 
         def _complete(e):
             page.show_dialog(bs)
@@ -56,13 +57,13 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
         bs = ft.BottomSheet(
             content=ft.Container(
                 content=ft.Column([
-                    h2(f"Completar: {q['title']}"),
+                    h2(f"{i18n.t('quests.complete')}: {q['title']}"),
                     ft.Container(height=4),
                     body(q["description"], size=13),
                     ft.Container(height=8),
                     reflection_f,
                     ft.Container(height=12),
-                    primary_btn("Confirmar ✓", on_click=_confirm, expand=True, color=ACCENT),
+                    primary_btn(i18n.t("common.confirm"), on_click=_confirm, expand=True, color=ACCENT),
                 ], spacing=6),
                 bgcolor=CARD,
                 padding=24,
@@ -105,7 +106,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
                 body(q["description"], size=12, color=MUTED if done else None),
                 ft.Container(height=6),
                 ft.Container() if done else primary_btn(
-                    "Completar quest", on_click=_complete, expand=True,
+                    i18n.t("quests.complete"), on_click=_complete, expand=True,
                     color=d_color,
                 ),
             ], spacing=2),
@@ -126,13 +127,13 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
             ft.Container(
                 content=ft.Row([
                     ft.Column([
-                        h1("Misiones", size=22),
-                        muted(f"Hoy · {today_str}"),
+                        h1(i18n.t("nav.quests"), size=22),
+                        muted(f"{i18n.t('common.today')} · {today_str}"),
                     ], spacing=2),
                     ft.IconButton(
                         icon=ft.Icons.REFRESH, icon_color=MUTED, icon_size=20,
                         on_click=lambda e: load(),
-                        tooltip="Recargar",
+                        tooltip=i18n.t("common.reload"),
                     ),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 padding=ft.Padding.only(top=16, bottom=8),

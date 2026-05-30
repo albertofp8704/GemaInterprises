@@ -1,6 +1,7 @@
 import flet as ft
 from ..theme import *
 from ..api import APIClient, APIError
+from .. import i18n
 
 
 def build(page: ft.Page, api: APIClient, state: dict):
@@ -19,7 +20,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
         if not matches:
             matches_col.controls.append(card(ft.Column([
                 ft.Text("⚽", size=40),
-                body("No hay partidos próximos", size=16),
+                body(i18n.t("pred.no_matches") or "—", size=16),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
             page.update()
             return
@@ -41,8 +42,8 @@ def build(page: ft.Page, api: APIClient, state: dict):
         if not preds:
             preds_col.controls.append(card(ft.Column([
                 ft.Text("🔮", size=40),
-                body("Aún no has predicho nada", size=16),
-                muted("Predice el marcador de un partido"),
+                body(i18n.t("pred.none_yet") or "—", size=16),
+                muted(i18n.t("pred.predict_hint") or ""),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
             page.update()
             return
@@ -75,7 +76,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 a = int(away_score_f.value or "0")
                 api.predict_match(m["id"], h, a)
                 page.pop_dialog()
-                snack(page, f"Predicción guardada: {m['team_home']} {h} - {a} {m['team_away']} 🔒")
+                snack(page, f"{m['team_home']} {h} - {a} {m['team_away']} 🔒")
                 load_matches()
             except (APIError, ValueError) as ex:
                 snack(page, str(ex), RED)
@@ -84,7 +85,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
         bs = ft.BottomSheet(
             content=ft.Container(
                 content=ft.Column([
-                    h2("Predice el marcador"),
+                    h2(i18n.t("pred.predict_score")),
                     ft.Container(height=8),
                     ft.Row([
                         ft.Column([
@@ -100,7 +101,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
                     ], alignment=ft.MainAxisAlignment.SPACE_AROUND),
                     ft.Container(height=12),
-                    primary_btn("Bloquear predicción 🔒", on_click=_predict, expand=True),
+                    primary_btn(i18n.t("pred.lock"), on_click=_predict, expand=True),
                 ], spacing=6, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 bgcolor=CARD,
                 padding=24,
@@ -137,7 +138,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, expand=True),
                 ]),
                 ft.Container(height=8),
-                primary_btn("🔮 Predecir marcador", on_click=lambda e: page.show_dialog(bs), expand=True),
+                primary_btn(i18n.t("pred.predict"), on_click=lambda e: page.show_dialog(bs), expand=True),
             ], spacing=2),
             bgcolor=CARD, border_radius=16, padding=16, border=ft.Border.all(1, BORDER),
         )
@@ -153,13 +154,13 @@ def build(page: ft.Page, api: APIClient, state: dict):
         is_correct = p.get("is_correct")
         color = ACCENT if is_correct is True else (RED if is_correct is False else MUTED)
         icon  = ft.Icons.CHECK_CIRCLE if is_correct is True else (ft.Icons.CANCEL if is_correct is False else ft.Icons.SCHEDULE)
-        label = "Correcta ✓" if is_correct is True else ("Incorrecta ✗" if is_correct is False else "Pendiente")
+        label = i18n.t("pred.correct") if is_correct is True else (i18n.t("pred.wrong") if is_correct is False else i18n.t("pred.pending"))
 
         return card(ft.Row([
             ft.Icon(icon, size=24, color=color),
             ft.Column([
                 body(score_txt, size=15),
-                muted(p.get("description") or f"Partido #{p.get('match_id')}" or "Predicción de vida"),
+                muted(p.get("description") or f"Match #{p.get('match_id')}" or ""),
             ], expand=True, spacing=2),
             ft.Column([
                 ft.Text(label, size=11, color=color),
@@ -179,15 +180,15 @@ def build(page: ft.Page, api: APIClient, state: dict):
     return ft.Container(
         content=ft.Column([
             ft.Container(
-                content=h1("Mundial 2026 🏆", size=22),
+                content=h1(i18n.t("pred.title"), size=22),
                 padding=ft.Padding.only(top=16, bottom=8),
             ),
             ft.Tabs(
                 content=ft.Column([
                     ft.TabBar(
                         tabs=[
-                            ft.Tab(label="Partidos ⚽"),
-                            ft.Tab(label="Mis predicciones 🔮"),
+                            ft.Tab(label=i18n.t("pred.matches")),
+                            ft.Tab(label=i18n.t("pred.mine")),
                         ],
                         scrollable=False,
                     ),

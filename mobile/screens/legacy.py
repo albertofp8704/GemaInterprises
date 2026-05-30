@@ -1,6 +1,7 @@
 import flet as ft
 from ..theme import *
 from ..api import APIClient, APIError
+from .. import i18n
 
 
 DEFAULT_LAT = 40.4168
@@ -24,8 +25,8 @@ def build(page: ft.Page, api: APIClient, state: dict):
         if not items:
             nearby_col.controls.append(card(ft.Column([
                 ft.Text("📍", size=40),
-                body("No hay legados cercanos", size=16),
-                muted("Sé el primero en dejar uno"),
+                body(i18n.t("legacy.empty_nearby"), size=16),
+                muted(i18n.t("legacy.be_first")),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
             page.update()
             return
@@ -47,8 +48,8 @@ def build(page: ft.Page, api: APIClient, state: dict):
         if not items:
             mine_col.controls.append(card(ft.Column([
                 ft.Text("📍", size=40),
-                body("Aún no has dejado legados", size=16),
-                muted("Dropea uno y que lo encuentren"),
+                body(i18n.t("legacy.empty_mine"), size=16),
+                muted(i18n.t("legacy.drop_hint")),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
             page.update()
             return
@@ -63,14 +64,14 @@ def build(page: ft.Page, api: APIClient, state: dict):
         found     = item.get("found_count", 0)
         is_nft    = item.get("is_nft", False)
         ctype     = item.get("content_type", "text")
-        city      = item.get("city") or item.get("location_name") or "Ubicación desconocida"
+        city      = item.get("city") or item.get("location_name") or "—"
 
         type_icon = {"text": "✍️", "voice": "🎙", "image": "🖼"}.get(ctype, "📍")
 
         def _find(e):
             try:
                 r = api.find_legacy(legacy_id)
-                snack(page, f"📍 Legado encontrado! +{r['tokens_earned']} tokens")
+                snack(page, f"📍 +{r['tokens_earned']} tokens")
                 _show_content_dialog(r["content"], r.get("content_type", "text"), city)
             except APIError as ex:
                 snack(page, str(ex), RED)
@@ -91,25 +92,22 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     ft.Text(f"{dist:.1f} km", size=12, color=PRIMARY),
                     ft.Container(width=8),
                     ft.Icon(ft.Icons.VISIBILITY, size=12, color=MUTED),
-                    ft.Text(f"{found} encontrados", size=12, color=MUTED),
+                    ft.Text(f"{found}", size=12, color=MUTED),
                 ], spacing=2),
             ], expand=True, spacing=4),
-            primary_btn("Abrir 📍", on_click=_find, color=PRIMARY),
+            primary_btn(i18n.t("legacy.open"), on_click=_find, color=PRIMARY),
         ], spacing=10, alignment=ft.MainAxisAlignment.START))
 
     def _show_content_dialog(content, ctype, city):
         icon = {"text": "✍️", "voice": "🎙", "image": "🖼"}.get(ctype, "📍")
         dlg = ft.AlertDialog(
-            title=ft.Text(f"{icon} Legado de {city}", color=TEXT),
+            title=ft.Text(f"{icon} {city}", color=TEXT),
             content=ft.Container(
                 content=ft.Text(content, color=MUTED, size=14),
-                bgcolor=SURFACE,
-                border_radius=10,
-                padding=16,
-                width=280,
+                bgcolor=SURFACE, border_radius=10, padding=16, width=280,
             ),
             bgcolor=CARD,
-            actions=[ft.TextButton("Cerrar", on_click=lambda _: page.pop_dialog())],
+            actions=[ft.TextButton(i18n.t("common.close"), on_click=lambda _: page.pop_dialog())],
         )
         page.show_dialog(dlg)
 
@@ -119,7 +117,6 @@ def build(page: ft.Page, api: APIClient, state: dict):
         is_nft = item.get("is_nft", False)
         ctype  = item.get("content_type", "text")
         icon   = {"text": "✍️", "voice": "🎙", "image": "🖼"}.get(ctype, "📍")
-
         preview = item.get("content", "")[:60]
 
         return card(ft.Column([
@@ -131,19 +128,19 @@ def build(page: ft.Page, api: APIClient, state: dict):
             ], spacing=8),
             ft.Row([
                 ft.Icon(ft.Icons.VISIBILITY, size=12, color=MUTED),
-                ft.Text(f"{found} personas lo encontraron", size=12, color=MUTED),
+                ft.Text(f"{found}", size=12, color=MUTED),
             ], spacing=4),
         ], spacing=6))
 
     def _show_drop_form(e):
-        content_f = text_input("Tu mensaje para el mundo", multiline=True,
-                               hint="Escribe lo que quieras que alguien encuentre...")
-        city_f    = text_input("Ciudad", hint="Madrid")
-        country_f = text_input("País", hint="España")
+        content_f = text_input(i18n.t("legacy.drop_content_lbl"), multiline=True,
+                               hint=i18n.t("legacy.drop_content_hint"))
+        city_f    = text_input(i18n.t("legacy.city_lbl"), hint="Madrid")
+        country_f = text_input(i18n.t("legacy.country_lbl"), hint="España")
 
         def _drop(e):
             if not content_f.value.strip():
-                snack(page, "Escribe algo primero", RED)
+                snack(page, i18n.t("legacy.write_first"), RED)
                 return
             try:
                 api.drop_legacy(
@@ -153,7 +150,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     city=city_f.value.strip() or None,
                     country=country_f.value.strip() or None,
                 )
-                snack(page, "📍 Legado dropeado. Alguien lo encontrará.")
+                snack(page, i18n.t("legacy.dropped"))
                 page.pop_dialog()
                 load_nearby()
             except APIError as ex:
@@ -163,14 +160,14 @@ def build(page: ft.Page, api: APIClient, state: dict):
         bs = ft.BottomSheet(
             content=ft.Container(
                 content=ft.Column([
-                    h2("Drop un Legado 📍"),
-                    muted("Tu mensaje quedará en este lugar para que alguien lo encuentre"),
+                    h2(i18n.t("legacy.drop_title")),
+                    muted(i18n.t("legacy.drop_subtitle")),
                     ft.Container(height=8),
                     content_f,
                     ft.Container(height=4),
                     ft.Row([city_f, country_f], spacing=8),
                     ft.Container(height=12),
-                    primary_btn("Dropear Legado 📍", on_click=_drop, expand=True, color=PRI_L),
+                    primary_btn(i18n.t("legacy.drop_btn"), on_click=_drop, expand=True, color=PRI_L),
                 ], spacing=6),
                 bgcolor=CARD,
                 padding=24,
@@ -193,15 +190,15 @@ def build(page: ft.Page, api: APIClient, state: dict):
         content=ft.Column([
             ft.Container(
                 content=ft.Row([
-                    h1("Legados 📍", size=22),
-                    primary_btn("+ Drop", on_click=_show_drop_form, color=PRI_L),
+                    h1(i18n.t("legacy.title"), size=22),
+                    primary_btn(i18n.t("legacy.drop"), on_click=_show_drop_form, color=PRI_L),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 padding=ft.Padding.only(top=16, bottom=8),
             ),
             ft.Tabs(
                 content=ft.Column([
                     ft.TabBar(
-                        tabs=[ft.Tab(label="Cercanos 📍"), ft.Tab(label="Mis legados ✍️")],
+                        tabs=[ft.Tab(label=i18n.t("legacy.nearby")), ft.Tab(label=i18n.t("legacy.mine"))],
                         scrollable=False,
                     ),
                     ft.TabBarView(
