@@ -72,8 +72,8 @@ def badge(text, color=PRIMARY, size=10):
 
 
 def primary_btn(text, on_click, icon=None, disabled=False, color=PRIMARY, expand=False):
-    return ft.ElevatedButton(
-        text=text,
+    return ft.Button(
+        content=text,
         icon=icon,
         on_click=on_click,
         disabled=disabled,
@@ -89,7 +89,7 @@ def primary_btn(text, on_click, icon=None, disabled=False, color=PRIMARY, expand
 
 def ghost_btn(text, on_click, icon=None):
     return ft.OutlinedButton(
-        text=text,
+        content=text,
         icon=icon,
         on_click=on_click,
         style=ft.ButtonStyle(
