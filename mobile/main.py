@@ -4,11 +4,11 @@ from .api import APIClient
 from .screens import auth, home, quests, predictions, villain, legacy, profile, wallet
 
 
-def main(page: ft.Page):
-    page.title        = "GOAT Arc"
-    page.bgcolor      = BG
-    page.theme_mode   = ft.ThemeMode.DARK
-    page.padding      = 0
+async def main(page: ft.Page):
+    page.title      = "GOAT Arc"
+    page.bgcolor    = BG
+    page.theme_mode = ft.ThemeMode.DARK
+    page.padding    = 0
 
     page.theme = ft.Theme(
         color_scheme_seed=PRIMARY,
@@ -33,8 +33,17 @@ def main(page: ft.Page):
 
     def on_login(data: dict):
         state["user"] = data.get("user", {})
+        async def _save():
+            await page.shared_preferences.set("goat_token", api.token)
+        page.run_task(_save)
         nav_ref.current.visible = True
         show_tab(0)
+
+    def on_logout():
+        async def _clear():
+            await page.shared_preferences.remove("goat_token")
+        page.run_task(_clear)
+        show_auth()
 
     def show_tab(idx: int):
         nav_ref.current.selected_index = idx
@@ -53,7 +62,7 @@ def main(page: ft.Page):
         elif idx == 5:
             swap(wallet.build(page, api, state))
         elif idx == 6:
-            swap(profile.build(page, api, state, on_logout=show_auth))
+            swap(profile.build(page, api, state, on_logout=on_logout))
         page.update()
 
     def on_nav_change(e):
@@ -89,8 +98,20 @@ def main(page: ft.Page):
         ], spacing=0, expand=True),
     )
 
-    # ── Boot ─────────────────────────────────────────────────────────────────
-    show_auth()
+    # ── Boot: restore session ─────────────────────────────────────────────────
+    saved_token = await page.shared_preferences.get("goat_token")
+    if saved_token:
+        api.token = saved_token
+        try:
+            user = api.me()
+            state["user"] = user
+            nav_ref.current.visible = True
+            show_tab(0)
+        except Exception:
+            await page.shared_preferences.remove("goat_token")
+            show_auth()
+    else:
+        show_auth()
 
     page.update()
 
