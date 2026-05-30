@@ -99,7 +99,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 ], spacing=6, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 bgcolor=CARD,
                 padding=24,
-                border_radius=ft.border_radius.only(top_left=20, top_right=20),
+                border_radius=ft.BorderRadius.only(top_left=20, top_right=20),
             ),
             bgcolor=CARD,
         )
@@ -190,7 +190,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
         content=ft.Column([
             ft.Container(
                 content=h1("Mundial 2026 🏆", size=22),
-                padding=ft.padding.only(top=16, bottom=8),
+                padding=ft.Padding.only(top=16, bottom=8),
             ),
             tabs,
             ft.Container(height=8),
@@ -198,5 +198,5 @@ def build(page: ft.Page, api: APIClient, state: dict):
         ], spacing=0, expand=True),
         bgcolor=BG,
         expand=True,
-        padding=ft.padding.symmetric(horizontal=16),
+        padding=ft.Padding.symmetric(horizontal=16),
     )

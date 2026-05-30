@@ -68,7 +68,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
                 ], spacing=6),
                 bgcolor=CARD,
                 padding=24,
-                border_radius=ft.border_radius.only(top_left=20, top_right=20),
+                border_radius=ft.BorderRadius.only(top_left=20, top_right=20),
             ),
             bgcolor=CARD,
         )
@@ -80,7 +80,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
                     ft.Container(
                         content=ft.Text(emoji, size=20),
                         width=42, height=42, bgcolor=SURFACE, border_radius=10,
-                        alignment=ft.alignment.center,
+                        alignment=ft.Alignment.CENTER,
                     ),
                     ft.Column([
                         ft.Row([
@@ -139,11 +139,11 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
                         tooltip="Recargar",
                     ),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                padding=ft.padding.only(top=16, bottom=8),
+                padding=ft.Padding.only(top=16, bottom=8),
             ),
             list_col,
         ], spacing=0, expand=True),
         bgcolor=BG,
         expand=True,
-        padding=ft.padding.symmetric(horizontal=16),
+        padding=ft.Padding.symmetric(horizontal=16),
     )

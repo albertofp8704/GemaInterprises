@@ -187,7 +187,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     ft.Container(
                         content=ft.Text("1", size=14, color=TEXT, weight=ft.FontWeight.BOLD),
                         width=28, height=28, bgcolor=PRIMARY, border_radius=14,
-                        alignment=ft.alignment.center,
+                        alignment=ft.Alignment.CENTER,
                     ),
                     body("Solicita el mensaje de firma", size=14),
                 ], spacing=10),
@@ -195,7 +195,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     ft.Container(
                         content=ft.Text("2", size=14, color=TEXT, weight=ft.FontWeight.BOLD),
                         width=28, height=28, bgcolor=SURFACE, border_radius=14,
-                        alignment=ft.alignment.center,
+                        alignment=ft.Alignment.CENTER,
                         border=ft.border.all(1, BORDER),
                     ),
                     body("Cópialo y fírmalo en MetaMask", size=14, color=MUTED),
@@ -204,7 +204,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     ft.Container(
                         content=ft.Text("3", size=14, color=TEXT, weight=ft.FontWeight.BOLD),
                         width=28, height=28, bgcolor=SURFACE, border_radius=14,
-                        alignment=ft.alignment.center,
+                        alignment=ft.Alignment.CENTER,
                         border=ft.border.all(1, BORDER),
                     ),
                     body("Pega la firma aquí y verifica", size=14, color=MUTED),
@@ -234,11 +234,11 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     ft.IconButton(icon=ft.Icons.REFRESH, icon_color=MUTED,
                                   on_click=lambda e: load(), icon_size=20),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                padding=ft.padding.only(top=16, bottom=8),
+                padding=ft.Padding.only(top=16, bottom=8),
             ),
             content_col,
         ], spacing=0, expand=True),
         bgcolor=BG,
         expand=True,
-        padding=ft.padding.symmetric(horizontal=16),
+        padding=ft.Padding.symmetric(horizontal=16),
     )

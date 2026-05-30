@@ -87,5 +87,5 @@ def build(page: ft.Page, api: APIClient, on_login):
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, scroll=ft.ScrollMode.AUTO),
         bgcolor=BG,
         expand=True,
-        padding=ft.padding.symmetric(horizontal=24),
+        padding=ft.Padding.symmetric(horizontal=24),
     )

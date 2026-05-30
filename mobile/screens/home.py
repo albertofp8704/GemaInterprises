@@ -30,7 +30,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                     ft.Container(
                         content=ft.Text(username[0].upper(), size=28, color=TEXT, weight=ft.FontWeight.BOLD),
                         width=56, height=56, bgcolor=PRIMARY, border_radius=28,
-                        alignment=ft.alignment.center,
+                        alignment=ft.Alignment.CENTER,
                     ),
                     ft.Column([
                         ft.Text(f"@{username}", size=16, color=TEXT, weight=ft.FontWeight.W_600),
@@ -45,7 +45,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                     ft.Container(
                         content=ft.Text(f"⚽", size=22),
                         width=44, height=44, bgcolor=SURFACE, border_radius=12,
-                        alignment=ft.alignment.center,
+                        alignment=ft.Alignment.CENTER,
                         tooltip="Nivel",
                     ),
                 ], alignment=ft.MainAxisAlignment.START, spacing=12),
@@ -53,8 +53,8 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                 xp_bar(xp, level),
             ]),
             gradient=ft.LinearGradient(
-                begin=ft.alignment.top_left,
-                end=ft.alignment.bottom_right,
+                begin=ft.Alignment.TOP_LEFT,
+                end=ft.Alignment.BOTTOM_RIGHT,
                 colors=[CARD, SURFACE],
             ),
             border_radius=20,
@@ -72,7 +72,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                 ], spacing=6),
                 bgcolor=VILLAIN,
                 border_radius=12,
-                padding=ft.padding.symmetric(horizontal=16, vertical=8),
+                padding=ft.Padding.symmetric(horizontal=16, vertical=8),
             )
 
         # ── Quick stats ──────────────────────────────────────────────────────
@@ -169,11 +169,11 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                     h1("GOAT Arc", size=22),
                     ft.Text("⚽", size=22),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                padding=ft.padding.only(top=16, left=0, right=0, bottom=8),
+                padding=ft.Padding.only(top=16, left=0, right=0, bottom=8),
             ),
             content_col,
         ], spacing=0, expand=True),
         bgcolor=BG,
         expand=True,
-        padding=ft.padding.symmetric(horizontal=16),
+        padding=ft.Padding.symmetric(horizontal=16),
     )

@@ -92,8 +92,8 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 ghost_btn("Completar Arc 🏆", on_click=_complete_arc),
             ], spacing=4),
             gradient=ft.LinearGradient(
-                begin=ft.alignment.top_left,
-                end=ft.alignment.bottom_right,
+                begin=ft.Alignment.TOP_LEFT,
+                end=ft.Alignment.BOTTOM_RIGHT,
                 colors=["#1a0000", "#2d0000"],
             ),
             border_radius=20,
@@ -179,11 +179,11 @@ def build(page: ft.Page, api: APIClient, state: dict):
         content=ft.Column([
             ft.Container(
                 content=h1("Villain Arc 😈", size=22),
-                padding=ft.padding.only(top=16, bottom=8),
+                padding=ft.Padding.only(top=16, bottom=8),
             ),
             content_col,
         ], spacing=0, expand=True),
         bgcolor=BG,
         expand=True,
-        padding=ft.padding.symmetric(horizontal=16),
+        padding=ft.Padding.symmetric(horizontal=16),
     )

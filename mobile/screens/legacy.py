@@ -59,7 +59,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
             ft.Container(
                 content=ft.Text(type_icon, size=22),
                 width=44, height=44, bgcolor=SURFACE, border_radius=10,
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment.CENTER,
             ),
             ft.Column([
                 ft.Row([
@@ -168,7 +168,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 ], spacing=6),
                 bgcolor=CARD,
                 padding=24,
-                border_radius=ft.border_radius.only(top_left=20, top_right=20),
+                border_radius=ft.BorderRadius.only(top_left=20, top_right=20),
             ),
             bgcolor=CARD,
         )
@@ -200,7 +200,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     h1("Legados 📍", size=22),
                     primary_btn("+ Drop", on_click=_show_drop_form, color=PRI_L),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                padding=ft.padding.only(top=16, bottom=8),
+                padding=ft.Padding.only(top=16, bottom=8),
             ),
             tabs,
             ft.Container(height=8),
@@ -208,5 +208,5 @@ def build(page: ft.Page, api: APIClient, state: dict):
         ], spacing=0, expand=True),
         bgcolor=BG,
         expand=True,
-        padding=ft.padding.symmetric(horizontal=16),
+        padding=ft.Padding.symmetric(horizontal=16),
     )

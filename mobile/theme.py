@@ -67,7 +67,7 @@ def badge(text, color=PRIMARY, size=10):
         content=ft.Text(text, size=size, color=TEXT, weight=ft.FontWeight.BOLD),
         bgcolor=color,
         border_radius=20,
-        padding=ft.padding.symmetric(horizontal=8, vertical=3),
+        padding=ft.Padding.symmetric(horizontal=8, vertical=3),
     )
 
 
@@ -82,7 +82,7 @@ def primary_btn(text, on_click, icon=None, disabled=False, color=PRIMARY, expand
             bgcolor={ft.ControlState.DEFAULT: color, ft.ControlState.DISABLED: BORDER},
             color=TEXT,
             shape=ft.RoundedRectangleBorder(radius=12),
-            padding=ft.padding.symmetric(horizontal=20, vertical=14),
+            padding=ft.Padding.symmetric(horizontal=20, vertical=14),
         ),
     )
 
@@ -96,7 +96,7 @@ def ghost_btn(text, on_click, icon=None):
             color=TEXT,
             side=ft.BorderSide(1, BORDER),
             shape=ft.RoundedRectangleBorder(radius=12),
-            padding=ft.padding.symmetric(horizontal=20, vertical=12),
+            padding=ft.Padding.symmetric(horizontal=20, vertical=12),
         ),
     )
 
