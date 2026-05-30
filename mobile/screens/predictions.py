@@ -1,0 +1,209 @@
+import flet as ft
+from ..theme import *
+from ..api import APIClient, APIError
+from .. import i18n
+
+
+def build(page: ft.Page, api: APIClient, state: dict):
+    matches_col = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    preds_col   = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+
+    def load_matches():
+        matches_col.controls.clear()
+        try:
+            matches = api.matches(status="upcoming")
+        except APIError as e:
+            matches_col.controls.append(ft.Text(str(e), color=RED))
+            page.update()
+            return
+
+        if not matches:
+            matches_col.controls.append(card(ft.Column([
+                ft.Text("⚽", size=40),
+                body(i18n.t("pred.no_matches") or "—", size=16),
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
+            page.update()
+            return
+
+        matches_col.controls.append(ft.Container(height=4))
+        for m in matches:
+            matches_col.controls.append(_match_card(m))
+        page.update()
+
+    def load_my_predictions():
+        preds_col.controls.clear()
+        try:
+            preds = api.my_predictions()
+        except APIError as e:
+            preds_col.controls.append(ft.Text(str(e), color=RED))
+            page.update()
+            return
+
+        if not preds:
+            preds_col.controls.append(card(ft.Column([
+                ft.Text("🔮", size=40),
+                body(i18n.t("pred.none_yet") or "—", size=16),
+                muted(i18n.t("pred.predict_hint") or ""),
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
+            page.update()
+            return
+
+        preds_col.controls.append(ft.Container(height=4))
+        for p in preds:
+            preds_col.controls.append(_prediction_card(p))
+        page.update()
+
+    def _match_card(m: dict):
+        stage_labels = {"group": "Fase de grupos", "r32": "Octavos", "r16": "Dieciseisavos",
+                        "qf": "Cuartos", "sf": "Semis", "final": "FINAL 🏆"}
+        stage = stage_labels.get(m.get("stage", ""), m.get("stage", ""))
+        city  = m.get("city", "")
+
+        _score_opts = [ft.DropdownOption(key=str(i), text=str(i)) for i in range(11)]
+
+        home_score_f = ft.Dropdown(
+            value="0", options=_score_opts, width=80,
+            bgcolor=SURFACE, border_color=BORDER, border_radius=10, color=TEXT,
+        )
+        away_score_f = ft.Dropdown(
+            value="0", options=_score_opts, width=80,
+            bgcolor=SURFACE, border_color=BORDER, border_radius=10, color=TEXT,
+        )
+
+        def _predict(e):
+            try:
+                h = int(home_score_f.value or "0")
+                a = int(away_score_f.value or "0")
+                api.predict_match(m["id"], h, a)
+                page.pop_dialog()
+                snack(page, f"{m['team_home']} {h} - {a} {m['team_away']} 🔒")
+                load_matches()
+            except (APIError, ValueError) as ex:
+                snack(page, str(ex), RED)
+                page.pop_dialog()
+
+        bs = ft.BottomSheet(
+            content=ft.Container(
+                content=ft.Column([
+                    h2(i18n.t("pred.predict_score")),
+                    ft.Container(height=8),
+                    ft.Row([
+                        ft.Column([
+                            ft.Text(m.get("flag_home", ""), size=32),
+                            body(m["team_home"], size=13),
+                            home_score_f,
+                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
+                        ft.Text("VS", size=20, color=MUTED, weight=ft.FontWeight.BOLD),
+                        ft.Column([
+                            ft.Text(m.get("flag_away", ""), size=32),
+                            body(m["team_away"], size=13),
+                            away_score_f,
+                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
+                    ], alignment=ft.MainAxisAlignment.SPACE_AROUND),
+                    ft.Container(height=12),
+                    primary_btn(i18n.t("pred.lock"), on_click=_predict, expand=True),
+                ], spacing=6, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                bgcolor=CARD,
+                padding=24,
+                border_radius=ft.BorderRadius.only(top_left=20, top_right=20),
+            ),
+            bgcolor=CARD,
+        )
+        from datetime import datetime
+        try:
+            dt = datetime.fromisoformat(m["match_date"])
+            date_str = dt.strftime("%d %b · %H:%M")
+        except Exception:
+            date_str = m.get("match_date", "")
+
+        return ft.Container(
+            content=ft.Column([
+                ft.Row([
+                    badge(stage, color=PRIMARY if m.get("stage") != "final" else GOLD, size=10),
+                    ft.Text(f"🏟 {city}", size=11, color=MUTED) if city else ft.Container(),
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                ft.Container(height=8),
+                ft.Row([
+                    ft.Column([
+                        ft.Text(m.get("flag_home", "🏳"), size=36),
+                        body(m["team_home"], size=13),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, expand=True),
+                    ft.Column([
+                        ft.Text("VS", size=16, color=MUTED),
+                        muted(date_str),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                    ft.Column([
+                        ft.Text(m.get("flag_away", "🏳"), size=36),
+                        body(m["team_away"], size=13),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, expand=True),
+                ]),
+                ft.Container(height=8),
+                primary_btn(i18n.t("pred.predict"), on_click=lambda e: page.show_dialog(bs), expand=True),
+            ], spacing=2),
+            bgcolor=CARD, border_radius=16, padding=16, border=ft.Border.all(1, BORDER),
+        )
+
+    def _prediction_card(p: dict):
+        if p.get("type") == "match":
+            h = p.get("predicted_home", "?")
+            a = p.get("predicted_away", "?")
+            score_txt = f"{h} - {a}"
+        else:
+            score_txt = p.get("predicted_outcome", "")[:40]
+
+        is_correct = p.get("is_correct")
+        color = ACCENT if is_correct is True else (RED if is_correct is False else MUTED)
+        icon  = ft.Icons.CHECK_CIRCLE if is_correct is True else (ft.Icons.CANCEL if is_correct is False else ft.Icons.SCHEDULE)
+        label = i18n.t("pred.correct") if is_correct is True else (i18n.t("pred.wrong") if is_correct is False else i18n.t("pred.pending"))
+
+        return card(ft.Row([
+            ft.Icon(icon, size=24, color=color),
+            ft.Column([
+                body(score_txt, size=15),
+                muted(p.get("description") or f"Match #{p.get('match_id')}" or ""),
+            ], expand=True, spacing=2),
+            ft.Column([
+                ft.Text(label, size=11, color=color),
+                ft.Text(f"+{p.get('points_earned', 0)} pts", size=12, color=GOLD if p.get('points_earned') else MUTED),
+            ], horizontal_alignment=ft.CrossAxisAlignment.END, spacing=2),
+        ], spacing=10))
+
+    def _on_tab_change(e):
+        idx = int(e.data)
+        if idx == 0:
+            load_matches()
+        else:
+            load_my_predictions()
+
+    load_matches()
+
+    return ft.Container(
+        content=ft.Column([
+            ft.Container(
+                content=h1(i18n.t("pred.title"), size=22),
+                padding=ft.Padding.only(top=16, bottom=8),
+            ),
+            ft.Tabs(
+                content=ft.Column([
+                    ft.TabBar(
+                        tabs=[
+                            ft.Tab(label=i18n.t("pred.matches")),
+                            ft.Tab(label=i18n.t("pred.mine")),
+                        ],
+                        scrollable=False,
+                    ),
+                    ft.TabBarView(
+                        expand=True,
+                        controls=[matches_col, preds_col],
+                    ),
+                ], expand=True, spacing=0),
+                length=2,
+                selected_index=0,
+                expand=True,
+                on_change=_on_tab_change,
+            ),
+        ], spacing=0, expand=True),
+        bgcolor=BG,
+        expand=True,
+        padding=ft.Padding.symmetric(horizontal=16),
+    )
