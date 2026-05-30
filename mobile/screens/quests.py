@@ -91,15 +91,15 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
                         ft.Row([
                             badge(cat, color=c_color, size=9),
                             ft.Container(width=4),
-                            ft.Icon(ft.icons.STAR, size=12, color=GOLD),
+                            ft.Icon(ft.Icons.STAR, size=12, color=GOLD),
                             ft.Text(f"+{q['xp_reward']} XP", size=11, color=GOLD),
-                            ft.Icon(ft.icons.PAID, size=12, color=MUTED),
+                            ft.Icon(ft.Icons.PAID, size=12, color=MUTED),
                             ft.Text(f"+{q['token_reward']}", size=11, color=MUTED),
                         ], spacing=2),
                     ], expand=True, spacing=4),
                     ft.Container(
                         content=ft.Icon(
-                            ft.icons.CHECK_CIRCLE if done else ft.icons.RADIO_BUTTON_UNCHECKED,
+                            ft.Icons.CHECK_CIRCLE if done else ft.Icons.RADIO_BUTTON_UNCHECKED,
                             size=24,
                             color=ACCENT if done else BORDER,
                         ),
@@ -134,7 +134,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
                         muted(f"Hoy · {today_str}"),
                     ], spacing=2),
                     ft.IconButton(
-                        icon=ft.icons.REFRESH, icon_color=MUTED, icon_size=20,
+                        icon=ft.Icons.REFRESH, icon_color=MUTED, icon_size=20,
                         on_click=lambda e: load(),
                         tooltip="Recargar",
                     ),

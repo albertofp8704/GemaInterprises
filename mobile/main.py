@@ -69,13 +69,13 @@ def main(page: ft.Page):
         on_change=on_nav_change,
         visible=False,
         destinations=[
-            ft.NavigationBarDestination(icon=ft.icons.HOME_OUTLINED,        selected_icon=ft.icons.HOME,              label="Home"),
-            ft.NavigationBarDestination(icon=ft.icons.CHECKLIST_OUTLINED,   selected_icon=ft.icons.CHECKLIST,         label="Quests"),
-            ft.NavigationBarDestination(icon=ft.icons.SPORTS_SOCCER,        selected_icon=ft.icons.SPORTS_SOCCER,     label="Mundial"),
-            ft.NavigationBarDestination(icon=ft.icons.WHATSHOT_OUTLINED,    selected_icon=ft.icons.WHATSHOT,          label="Villain"),
-            ft.NavigationBarDestination(icon=ft.icons.PLACE_OUTLINED,       selected_icon=ft.icons.PLACE,             label="Legados"),
-            ft.NavigationBarDestination(icon=ft.icons.ACCOUNT_BALANCE_WALLET_OUTLINED, selected_icon=ft.icons.ACCOUNT_BALANCE_WALLET, label="Wallet"),
-            ft.NavigationBarDestination(icon=ft.icons.PERSON_OUTLINED,      selected_icon=ft.icons.PERSON,            label="Perfil"),
+            ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED,        selected_icon=ft.Icons.HOME,              label="Home"),
+            ft.NavigationBarDestination(icon=ft.Icons.CHECKLIST_OUTLINED,   selected_icon=ft.Icons.CHECKLIST,         label="Quests"),
+            ft.NavigationBarDestination(icon=ft.Icons.SPORTS_SOCCER,        selected_icon=ft.Icons.SPORTS_SOCCER,     label="Mundial"),
+            ft.NavigationBarDestination(icon=ft.Icons.WHATSHOT_OUTLINED,    selected_icon=ft.Icons.WHATSHOT,          label="Villain"),
+            ft.NavigationBarDestination(icon=ft.Icons.PLACE_OUTLINED,       selected_icon=ft.Icons.PLACE,             label="Legados"),
+            ft.NavigationBarDestination(icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED, selected_icon=ft.Icons.ACCOUNT_BALANCE_WALLET, label="Wallet"),
+            ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINED,      selected_icon=ft.Icons.PERSON,            label="Perfil"),
         ],
     )
 
@@ -110,4 +110,4 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="assets")
+    ft.run(main, assets_dir="assets")

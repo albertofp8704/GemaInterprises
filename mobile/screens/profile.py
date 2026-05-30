@@ -9,7 +9,7 @@ def _tx_rows(history: list) -> list:
     rows = []
     for tx in history[:6]:
         rows.append(ft.Row([
-            ft.Icon(ft.icons.ARROW_UPWARD if tx["amount"] > 0 else ft.icons.ARROW_DOWNWARD,
+            ft.Icon(ft.Icons.ARROW_UPWARD if tx["amount"] > 0 else ft.Icons.ARROW_DOWNWARD,
                     size=14, color=ACCENT if tx["amount"] > 0 else RED),
             ft.Column([body(tx.get("description", tx.get("type", "")), size=12)], expand=True),
             ft.Text(f"+{tx['amount']}" if tx["amount"] > 0 else str(tx["amount"]),
@@ -64,18 +64,18 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
 
         # ── Stats grid ────────────────────────────────────────────────────────
         stats = ft.Row([
-            stat_tile("Quests",       profile.get("quests_completed", 0),   ft.icons.CHECKLIST,   ACCENT),
-            stat_tile("Predicciones", profile.get("predictions_made", 0),   ft.icons.TRACK_CHANGES, GOLD),
+            stat_tile("Quests",       profile.get("quests_completed", 0),   ft.Icons.CHECKLIST,   ACCENT),
+            stat_tile("Predicciones", profile.get("predictions_made", 0),   ft.Icons.TRACK_CHANGES, GOLD),
         ], spacing=8)
         stats2 = ft.Row([
-            stat_tile("Legados",  profile.get("legacies_dropped", 0), ft.icons.PLACE,               PRI_L),
-            stat_tile("Racha",    profile.get("current_streak", 0),   ft.icons.LOCAL_FIRE_DEPARTMENT, VILLAIN),
+            stat_tile("Legados",  profile.get("legacies_dropped", 0), ft.Icons.PLACE,               PRI_L),
+            stat_tile("Racha",    profile.get("current_streak", 0),   ft.Icons.LOCAL_FIRE_DEPARTMENT, VILLAIN),
         ], spacing=8)
 
         # ── Token balance ─────────────────────────────────────────────────────
         token_card = card(ft.Column([
             ft.Row([
-                ft.Icon(ft.icons.PAID, size=24, color=GOLD),
+                ft.Icon(ft.Icons.PAID, size=24, color=GOLD),
                 h2(f"{tokens} GOAT Tokens", color=GOLD),
             ], spacing=8),
             muted(f"Gut Score: {accuracy}%"),
@@ -153,7 +153,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
             section_title("Flash Cards"),
             card_grid,
             ft.Container(height=12),
-            ghost_btn("Cerrar sesión", on_click=_logout, icon=ft.icons.LOGOUT),
+            ghost_btn("Cerrar sesión", on_click=_logout, icon=ft.Icons.LOGOUT),
             ft.Container(height=40),
         ]
         page.update()
@@ -165,7 +165,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
             ft.Container(
                 content=ft.Row([
                     h1("Mi Perfil", size=22),
-                    ft.IconButton(icon=ft.icons.REFRESH, icon_color=MUTED, on_click=lambda e: load(), icon_size=20),
+                    ft.IconButton(icon=ft.Icons.REFRESH, icon_color=MUTED, on_click=lambda e: load(), icon_size=20),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 padding=ft.padding.only(top=16, bottom=8),
             ),

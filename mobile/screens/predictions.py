@@ -149,7 +149,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
 
         is_correct = p.get("is_correct")
         color = ACCENT if is_correct is True else (RED if is_correct is False else MUTED)
-        icon  = ft.icons.CHECK_CIRCLE if is_correct is True else (ft.icons.CANCEL if is_correct is False else ft.icons.SCHEDULE)
+        icon  = ft.Icons.CHECK_CIRCLE if is_correct is True else (ft.Icons.CANCEL if is_correct is False else ft.Icons.SCHEDULE)
         label = "Correcta ✓" if is_correct is True else ("Incorrecta ✗" if is_correct is False else "Pendiente")
 
         return card(ft.Row([

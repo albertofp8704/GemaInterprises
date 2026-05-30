@@ -103,7 +103,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
 
         # Goals list
         goal_rows = [
-            ft.Row([ft.Icon(ft.icons.CHECK_BOX_OUTLINE_BLANK, size=18, color=MUTED), body(g, size=14)], spacing=8)
+            ft.Row([ft.Icon(ft.Icons.CHECK_BOX_OUTLINE_BLANK, size=18, color=MUTED), body(g, size=14)], spacing=8)
             for g in goals
         ] if goals else [muted("Sin objetivos definidos")]
         goals_col = ft.Column([section_title("Objetivos"), *goal_rows], spacing=8)

@@ -35,10 +35,10 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                     ft.Column([
                         ft.Text(f"@{username}", size=16, color=TEXT, weight=ft.FontWeight.W_600),
                         ft.Row([
-                            ft.Icon(ft.icons.BOLT, size=14, color=GOLD),
+                            ft.Icon(ft.Icons.BOLT, size=14, color=GOLD),
                             ft.Text(f"{tokens} GOAT", size=13, color=GOLD, weight=ft.FontWeight.W_600),
                             ft.Container(width=8),
-                            ft.Icon(ft.icons.LOCAL_FIRE_DEPARTMENT, size=14, color=ACCENT),
+                            ft.Icon(ft.Icons.LOCAL_FIRE_DEPARTMENT, size=14, color=ACCENT),
                             ft.Text(f"{streak} días", size=13, color=ACCENT),
                         ], spacing=2),
                     ], spacing=3, expand=True),
@@ -67,7 +67,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
         if villain:
             villain_pill = ft.Container(
                 content=ft.Row([
-                    ft.Icon(ft.icons.WHATSHOT, size=16, color=TEXT),
+                    ft.Icon(ft.Icons.WHATSHOT, size=16, color=TEXT),
                     ft.Text("VILLAIN ARC ACTIVO  😈", size=13, color=TEXT, weight=ft.FontWeight.BOLD),
                 ], spacing=6),
                 bgcolor=VILLAIN,
@@ -77,9 +77,9 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
 
         # ── Quick stats ──────────────────────────────────────────────────────
         stats_row = ft.Row([
-            stat_tile("Quests", profile.get("quests_completed", 0), ft.icons.CHECKLIST, ACCENT),
-            stat_tile("Predicciones", profile.get("predictions_made", 0), ft.icons.TRACK_CHANGES, GOLD),
-            stat_tile("Legados", profile.get("legacies_dropped", 0), ft.icons.PLACE, PRI_L),
+            stat_tile("Quests", profile.get("quests_completed", 0), ft.Icons.CHECKLIST, ACCENT),
+            stat_tile("Predicciones", profile.get("predictions_made", 0), ft.Icons.TRACK_CHANGES, GOLD),
+            stat_tile("Legados", profile.get("legacies_dropped", 0), ft.Icons.PLACE, PRI_L),
         ], spacing=8)
 
         # ── Quick action cards ────────────────────────────────────────────────

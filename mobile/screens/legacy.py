@@ -67,10 +67,10 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     badge("NFT 🎨", GOLD, size=9) if is_nft else ft.Container(),
                 ], spacing=4),
                 ft.Row([
-                    ft.Icon(ft.icons.PLACE, size=12, color=PRIMARY),
+                    ft.Icon(ft.Icons.PLACE, size=12, color=PRIMARY),
                     ft.Text(f"{dist:.1f} km", size=12, color=PRIMARY),
                     ft.Container(width=8),
-                    ft.Icon(ft.icons.VISIBILITY, size=12, color=MUTED),
+                    ft.Icon(ft.Icons.VISIBILITY, size=12, color=MUTED),
                     ft.Text(f"{found} encontrados", size=12, color=MUTED),
                 ], spacing=2),
             ], expand=True, spacing=4),
@@ -124,7 +124,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                       GOLD if is_nft else ACCENT if active else RED, size=9),
             ], spacing=8),
             ft.Row([
-                ft.Icon(ft.icons.VISIBILITY, size=12, color=MUTED),
+                ft.Icon(ft.Icons.VISIBILITY, size=12, color=MUTED),
                 ft.Text(f"{found} personas lo encontraron", size=12, color=MUTED),
             ], spacing=4),
         ], spacing=6))

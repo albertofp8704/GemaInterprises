@@ -38,7 +38,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
         try:
             bal = api.token_balance()
             balance_row = card(ft.Row([
-                ft.Icon(ft.icons.PAID, size=22, color=GOLD),
+                ft.Icon(ft.Icons.PAID, size=22, color=GOLD),
                 ft.Column([
                     h2(f"{bal['goat_tokens']} GOAT Tokens", color=GOLD),
                     muted("balance in-app"),
@@ -231,7 +231,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
             ft.Container(
                 content=ft.Row([
                     h1("Wallet 🦊", size=22),
-                    ft.IconButton(icon=ft.icons.REFRESH, icon_color=MUTED,
+                    ft.IconButton(icon=ft.Icons.REFRESH, icon_color=MUTED,
                                   on_click=lambda e: load(), icon_size=20),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 padding=ft.padding.only(top=16, bottom=8),
