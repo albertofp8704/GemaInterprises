@@ -72,7 +72,6 @@ async def main(page: ft.Page):
         ref=nav_ref,
         selected_index=0,
         bgcolor=CARD,
-        indicator_color=PRIMARY,
         on_change=on_nav_change,
         visible=False,
         destinations=[
