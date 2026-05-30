@@ -4,21 +4,27 @@
 backend:
 	uvicorn app.main:app --reload --port 8000
 
-# Run the Flet mobile app on desktop (for dev preview)
-mobile:
-	python -m flet run mobile/main.py
+RAILWAY_URL=https://gemainterprises-production-a30b.up.railway.app
 
-# Build Android APK
+# Run the Flet mobile app on desktop (for dev preview against production)
+mobile:
+	GOAT_API_URL=$(RAILWAY_URL) python -m flet run mobile/main.py
+
+# Run against local backend
+mobile-local:
+	GOAT_API_URL=http://localhost:8000 python -m flet run mobile/main.py
+
+# Build Android APK (points to Railway)
 android:
-	cd mobile && flet build android --project "GOAT Arc" --org com.goatarc
+	GOAT_API_URL=$(RAILWAY_URL) flet build apk --project "GOAT Arc" --org com.goatarc
 
 # Build iOS IPA (requires macOS + Xcode)
 ios:
-	cd mobile && flet build ios --project "GOAT Arc" --org com.goatarc
+	GOAT_API_URL=$(RAILWAY_URL) flet build ipa --project "GOAT Arc" --org com.goatarc
 
 # Build as web app
 web:
-	cd mobile && flet build web --project "GOAT Arc"
+	GOAT_API_URL=$(RAILWAY_URL) flet build web --project "GOAT Arc"
 
 # Seed the database with quests + World Cup matches
 seed:
