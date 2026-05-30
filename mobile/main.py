@@ -19,15 +19,17 @@ async def main(page: ft.Page):
     api   = APIClient()
     state = {}
 
-    # ── Helpers: client_storage (browser localStorage — persists app restarts) ─
+    # SharedPreferences: browser localStorage — persists across Railway redeploys
+    prefs = ft.SharedPreferences()
+
     async def _store(key: str, value: str):
-        await page.client_storage.set_async(key, value)
+        await prefs.set(key, value)
 
     async def _load(key: str) -> str | None:
-        return await page.client_storage.get_async(key)
+        return await prefs.get(key)
 
     async def _delete(key: str):
-        await page.client_storage.remove_async(key)
+        await prefs.remove(key)
 
     # ── Content area ─────────────────────────────────────────────────────────
     content_ref = ft.Ref[ft.Container]()
@@ -66,10 +68,8 @@ async def main(page: ft.Page):
     def on_lang_change(lang: str):
         i18n.set_lang(lang)
         page.run_task(_store, "goat_lang", lang)
-        # Rebuild nav labels
         for i, dest in enumerate(nav_ref.current.destinations):
             dest.label = _nav_labels()[i]
-        # Rebuild current tab
         show_tab(nav_ref.current.selected_index)
 
     state["on_lang_change"] = on_lang_change

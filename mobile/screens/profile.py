@@ -343,29 +343,6 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
             )
 
         # ── Language selector ─────────────────────────────────────────────────
-        lang_cells = {}
-
-        def _build_lang_row():
-            cells = []
-            for code, flag, name in i18n.SUPPORTED_LANGS:
-                active = i18n.get_lang() == code
-                cell = ft.Container(
-                    content=ft.Column([
-                        ft.Text(flag, size=22),
-                        ft.Text(name, size=10, color=TEXT if active else MUTED,
-                                weight=ft.FontWeight.W_600 if active else ft.FontWeight.NORMAL),
-                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=3),
-                    width=88, height=68,
-                    bgcolor=PRIMARY if active else SURFACE,
-                    border_radius=12,
-                    border=ft.Border.all(2 if active else 1, PRIMARY if active else BORDER),
-                    alignment=ft.Alignment.CENTER,
-                    on_click=lambda e, c=code: _pick_lang(c),
-                )
-                lang_cells[code] = cell
-                cells.append(cell)
-            return ft.Row(cells, spacing=8, alignment=ft.MainAxisAlignment.CENTER)
-
         def _pick_lang(code: str):
             on_lang = state.get("on_lang_change")
             if on_lang:
@@ -374,8 +351,31 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                 i18n.set_lang(code)
                 load()
 
-        lang_row_ref = ft.Ref[ft.Row]()
-        lang_row = _build_lang_row()
+        def _build_lang_grid():
+            langs = i18n.SUPPORTED_LANGS
+            rows = []
+            for row_start in range(0, len(langs), 4):
+                group = langs[row_start:row_start + 4]
+                cells = []
+                for code, flag, name in group:
+                    active = i18n.get_lang() == code
+                    cells.append(ft.Container(
+                        content=ft.Column([
+                            ft.Text(flag, size=20),
+                            ft.Text(name[:8], size=9,
+                                    color=TEXT if active else MUTED,
+                                    weight=ft.FontWeight.W_600 if active else ft.FontWeight.NORMAL,
+                                    text_align=ft.TextAlign.CENTER),
+                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
+                        expand=True, height=58,
+                        bgcolor=PRIMARY if active else SURFACE,
+                        border_radius=10,
+                        border=ft.Border.all(2 if active else 1, PRIMARY if active else BORDER),
+                        alignment=ft.Alignment.CENTER,
+                        on_click=lambda e, c=code: _pick_lang(c),
+                    ))
+                rows.append(ft.Row(cells, spacing=4))
+            return ft.Column(rows, spacing=4)
 
         settings_card = card(ft.Column([
             ft.Row([
@@ -383,7 +383,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                 h2(i18n.t("profile.language"), size=14),
             ], spacing=8),
             ft.Container(height=8),
-            lang_row,
+            _build_lang_grid(),
         ], spacing=0))
 
         # ── Logout ────────────────────────────────────────────────────────────
