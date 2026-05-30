@@ -1,7 +1,10 @@
 import httpx
 import os
 
-BASE_URL = os.getenv("GOAT_API_URL", "https://gemainterprises-production-a30b.up.railway.app")
+BASE_URL = (
+    os.getenv("GOAT_API_URL") or
+    "https://gemainterprises-production-a30b.up.railway.app"
+)
 
 
 class APIError(Exception):
