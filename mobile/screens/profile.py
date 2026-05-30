@@ -1,6 +1,7 @@
 import flet as ft
 from ..theme import *
 from ..api import APIClient, APIError
+from .. import i18n
 
 AVATAR_EMOJIS = [
     "🐐", "👑", "😈", "🔥",
@@ -341,6 +342,50 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                 )
             )
 
+        # ── Language selector ─────────────────────────────────────────────────
+        lang_cells = {}
+
+        def _build_lang_row():
+            cells = []
+            for code, flag, name in i18n.SUPPORTED_LANGS:
+                active = i18n.get_lang() == code
+                cell = ft.Container(
+                    content=ft.Column([
+                        ft.Text(flag, size=22),
+                        ft.Text(name, size=10, color=TEXT if active else MUTED,
+                                weight=ft.FontWeight.W_600 if active else ft.FontWeight.NORMAL),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=3),
+                    width=88, height=68,
+                    bgcolor=PRIMARY if active else SURFACE,
+                    border_radius=12,
+                    border=ft.Border.all(2 if active else 1, PRIMARY if active else BORDER),
+                    alignment=ft.Alignment.CENTER,
+                    on_click=lambda e, c=code: _pick_lang(c),
+                )
+                lang_cells[code] = cell
+                cells.append(cell)
+            return ft.Row(cells, spacing=8, alignment=ft.MainAxisAlignment.CENTER)
+
+        def _pick_lang(code: str):
+            on_lang = state.get("on_lang_change")
+            if on_lang:
+                on_lang(code)
+            else:
+                i18n.set_lang(code)
+                load()
+
+        lang_row_ref = ft.Ref[ft.Row]()
+        lang_row = _build_lang_row()
+
+        settings_card = card(ft.Column([
+            ft.Row([
+                ft.Icon(ft.Icons.LANGUAGE, size=16, color=PRIMARY),
+                h2(i18n.t("profile.language"), size=14),
+            ], spacing=8),
+            ft.Container(height=8),
+            lang_row,
+        ], spacing=0))
+
         # ── Logout ────────────────────────────────────────────────────────────
         def _logout(e):
             api.token = None
@@ -351,16 +396,19 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
             ft.Container(height=4),
             avatar_card,
             ft.Container(height=4),
-            section_title("Estadísticas"),
+            section_title(i18n.t("profile.stats")),
             stats, stats2,
             ft.Container(height=4),
-            section_title("Tokens & economía"),
+            section_title(i18n.t("profile.tokens")),
             token_card,
             ft.Container(height=4),
-            section_title("Flash Cards"),
+            section_title(i18n.t("profile.flashcards")),
             card_grid,
+            ft.Container(height=4),
+            section_title(i18n.t("profile.settings")),
+            settings_card,
             ft.Container(height=12),
-            ghost_btn("Cerrar sesión", on_click=_logout, icon=ft.Icons.LOGOUT),
+            ghost_btn(i18n.t("profile.logout"), on_click=_logout, icon=ft.Icons.LOGOUT),
             ft.Container(height=40),
         ]
         page.update()
@@ -371,7 +419,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
         content=ft.Column([
             ft.Container(
                 content=ft.Row([
-                    h1("Mi Perfil", size=22),
+                    h1(i18n.t("profile.title"), size=22),
                     ft.IconButton(icon=ft.Icons.REFRESH, icon_color=MUTED, on_click=lambda e: load(), icon_size=20),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 padding=ft.Padding.only(top=16, bottom=8),

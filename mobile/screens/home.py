@@ -1,6 +1,7 @@
 import flet as ft
 from ..theme import *
 from ..api import APIClient, APIError
+from .. import i18n
 
 # ── Earthy / leather palette (home only) ─────────────────────────────────────
 _DARK    = "#0d1408"
@@ -17,9 +18,9 @@ _ROPE    = "#9a8050"
 _COPPER  = "#7a4018"
 
 
-def _label(text: str):
+def _label(key: str):
     return ft.Text(
-        text.upper(), size=10, color="#8B7340",
+        i18n.t(key).upper(), size=10, color="#8B7340",
         weight=ft.FontWeight.W_600,
         style=ft.TextStyle(letter_spacing=1.6),
     )
@@ -134,7 +135,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
             villain_pill = ft.Container(
                 content=ft.Row([
                     ft.Icon(ft.Icons.WHATSHOT, size=14, color=TEXT),
-                    ft.Text("VILLAIN ARC ACTIVO  😈", size=12, color=TEXT,
+                    ft.Text(i18n.t("home.villain_on"), size=12, color=TEXT,
                             weight=ft.FontWeight.BOLD),
                 ], spacing=6),
                 gradient=ft.LinearGradient(colors=["#8B1010", "#5c0808"]),
@@ -165,9 +166,9 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
             )
 
         stats_row = ft.Row([
-            _stone("Quests",       profile.get("quests_completed", 0), ft.Icons.CHECKLIST,     ACCENT),
-            _stone("Predicciones", profile.get("predictions_made", 0), ft.Icons.TRACK_CHANGES, _GOLDB),
-            _stone("Legados",      profile.get("legacies_dropped", 0), ft.Icons.PLACE,         PRI_L),
+            _stone(i18n.t("home.quests_lbl"),  profile.get("quests_completed", 0), ft.Icons.CHECKLIST,     ACCENT),
+            _stone(i18n.t("home.preds_lbl"),   profile.get("predictions_made", 0), ft.Icons.TRACK_CHANGES, _GOLDB),
+            _stone(i18n.t("home.legados_lbl"), profile.get("legacies_dropped", 0), ft.Icons.PLACE,         PRI_L),
         ], spacing=8)
 
         # ── Quick action cards ─────────────────────────────────────────────────
@@ -178,7 +179,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                 content=ft.Container(
                     content=ft.Column([
                         ft.Text("🎯", size=30),
-                        ft.Text("Quest\nde hoy", size=11, color="#e8d098",
+                        ft.Text(i18n.t("home.quest_hoy"), size=11, color="#e8d098",
                                 text_align=ft.TextAlign.CENTER, weight=ft.FontWeight.W_600),
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
                     gradient=ft.LinearGradient(
@@ -196,7 +197,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                 content=ft.Container(
                     content=ft.Column([
                         ft.Text("🔮", size=30),
-                        ft.Text("Predecir\npartido", size=11, color="#d0d0f0",
+                        ft.Text(i18n.t("home.predecir"), size=11, color="#d0d0f0",
                                 text_align=ft.TextAlign.CENTER, weight=ft.FontWeight.W_600),
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
                     gradient=ft.LinearGradient(
@@ -211,7 +212,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
             ft.Container(
                 content=ft.Column([
                     ft.Text("⚽", size=30),
-                    ft.Text("Mundial\n2026", size=11, color="#fff8e0",
+                    ft.Text(i18n.t("home.mundial_lbl"), size=11, color="#fff8e0",
                             text_align=ft.TextAlign.CENTER, weight=ft.FontWeight.BOLD),
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
                 gradient=ft.LinearGradient(
@@ -228,12 +229,12 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
         radar_card = ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Text("RADAR DE PREDICCIONES", size=10, color=_ROPE,
+                    ft.Text(i18n.t("home.radar").upper(), size=10, color=_ROPE,
                             weight=ft.FontWeight.W_600,
                             style=ft.TextStyle(letter_spacing=1.2)),
                     ft.Container(expand=True),
                     ft.Container(
-                        content=ft.Text("Información", size=10, color=_GOLDB),
+                        content=ft.Text(i18n.t("home.info"), size=10, color=_GOLDB),
                         bgcolor="#1e1408",
                         border_radius=8,
                         padding=ft.Padding.symmetric(horizontal=10, vertical=4),
@@ -246,13 +247,13 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                     ft.Column([
                         ft.Row([
                             ft.Text("💡", size=13),
-                            ft.Text("Gut Score", size=12, color=_ROPE,
+                            ft.Text(i18n.t("home.gut_score"), size=12, color=_ROPE,
                                     weight=ft.FontWeight.W_600),
                         ], spacing=6),
                         ft.Container(height=2),
                         ft.Text(f"{accuracy}%", size=38, color=_GOLDB,
                                 weight=ft.FontWeight.BOLD),
-                        ft.Text(f"{preds_correct} / {preds_made} correctas",
+                        ft.Text(f"{preds_correct} / {preds_made} {i18n.t('home.correctas')}",
                                 size=11, color="#787878"),
                     ], spacing=2, expand=True),
                     # Globe compass
@@ -275,11 +276,11 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                     ft.Container(
                         content=ft.Column([
                             ft.Text("⏳", size=18),
-                            ft.Text("Predicciones\nRestantes:", size=8,
+                            ft.Text(f"Pred.\n{i18n.t('home.restantes')}:", size=8,
                                     color=_ROPE, text_align=ft.TextAlign.CENTER),
                             ft.Text("0", size=24, color=_GOLDB,
                                     weight=ft.FontWeight.BOLD),
-                            ft.Text("Límite\n0/1 hoy", size=8, color="#787878",
+                            ft.Text(f"0/1 {i18n.t('home.limite')}", size=8, color="#787878",
                                     text_align=ft.TextAlign.CENTER),
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                            spacing=2, alignment=ft.MainAxisAlignment.CENTER),
@@ -305,16 +306,16 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
 
         content_col.controls = [
             ft.Container(height=4),
-            _label("Tu Perfil"),
+            _label("home.tu_perfil"),
             ft.Container(height=4),
             player_card,
             villain_pill,
             ft.Container(height=4),
-            _label("Estadísticas"),
+            _label("home.stats"),
             ft.Container(height=4),
             stats_row,
             ft.Container(height=4),
-            _label("Acciones Rápidas"),
+            _label("home.acciones"),
             ft.Container(height=4),
             action_row,
             ft.Container(height=4),

@@ -1,7 +1,8 @@
 import flet as ft
-from .theme import BG, PRIMARY, CARD, TEXT, MUTED, BORDER, GOLD, VILLAIN
+from .theme import BG, PRIMARY
 from .api import APIClient
 from .screens import auth, home, quests, predictions, villain, legacy, profile, wallet
+from . import i18n
 
 
 async def main(page: ft.Page):
@@ -18,9 +19,30 @@ async def main(page: ft.Page):
     api   = APIClient()
     state = {}
 
+    # ── Helpers: client_storage (browser localStorage — persists app restarts) ─
+    async def _store(key: str, value: str):
+        await page.client_storage.set_async(key, value)
+
+    async def _load(key: str) -> str | None:
+        return await page.client_storage.get_async(key)
+
+    async def _delete(key: str):
+        await page.client_storage.remove_async(key)
+
     # ── Content area ─────────────────────────────────────────────────────────
     content_ref = ft.Ref[ft.Container]()
     nav_ref     = ft.Ref[ft.NavigationBar]()
+
+    def _nav_labels():
+        return [
+            i18n.t("nav.home"),
+            i18n.t("nav.quests"),
+            i18n.t("nav.mundial"),
+            i18n.t("nav.villain"),
+            i18n.t("nav.legados"),
+            i18n.t("nav.wallet"),
+            i18n.t("nav.perfil"),
+        ]
 
     def swap(widget):
         content_ref.current.content = widget
@@ -33,17 +55,24 @@ async def main(page: ft.Page):
 
     def on_login(data: dict):
         state["user"] = data.get("user", {})
-        async def _save():
-            await page.shared_preferences.set("goat_token", api.token)
-        page.run_task(_save)
+        page.run_task(_store, "goat_token", api.token)
         nav_ref.current.visible = True
         show_tab(0)
 
     def on_logout():
-        async def _clear():
-            await page.shared_preferences.remove("goat_token")
-        page.run_task(_clear)
+        page.run_task(_delete, "goat_token")
         show_auth()
+
+    def on_lang_change(lang: str):
+        i18n.set_lang(lang)
+        page.run_task(_store, "goat_lang", lang)
+        # Rebuild nav labels
+        for i, dest in enumerate(nav_ref.current.destinations):
+            dest.label = _nav_labels()[i]
+        # Rebuild current tab
+        show_tab(nav_ref.current.selected_index)
+
+    state["on_lang_change"] = on_lang_change
 
     def show_tab(idx: int):
         nav_ref.current.selected_index = idx
@@ -68,6 +97,7 @@ async def main(page: ft.Page):
     def on_nav_change(e):
         show_tab(e.control.selected_index)
 
+    labels = _nav_labels()
     nav_bar = ft.NavigationBar(
         ref=nav_ref,
         selected_index=0,
@@ -76,13 +106,13 @@ async def main(page: ft.Page):
         on_change=on_nav_change,
         visible=False,
         destinations=[
-            ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED,        selected_icon=ft.Icons.HOME,              label="Home"),
-            ft.NavigationBarDestination(icon=ft.Icons.CHECKLIST_OUTLINED,   selected_icon=ft.Icons.CHECKLIST,         label="Quests"),
-            ft.NavigationBarDestination(icon=ft.Icons.SPORTS_SOCCER,        selected_icon=ft.Icons.SPORTS_SOCCER,     label="Mundial"),
-            ft.NavigationBarDestination(icon=ft.Icons.WHATSHOT_OUTLINED,    selected_icon=ft.Icons.WHATSHOT,          label="Villain"),
-            ft.NavigationBarDestination(icon=ft.Icons.PLACE_OUTLINED,       selected_icon=ft.Icons.PLACE,             label="Legados"),
-            ft.NavigationBarDestination(icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED, selected_icon=ft.Icons.ACCOUNT_BALANCE_WALLET, label="Wallet"),
-            ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINED,      selected_icon=ft.Icons.PERSON,            label="Perfil"),
+            ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED,                     selected_icon=ft.Icons.HOME,              label=labels[0]),
+            ft.NavigationBarDestination(icon=ft.Icons.CHECKLIST_OUTLINED,                selected_icon=ft.Icons.CHECKLIST,         label=labels[1]),
+            ft.NavigationBarDestination(icon=ft.Icons.SPORTS_SOCCER,                     selected_icon=ft.Icons.SPORTS_SOCCER,     label=labels[2]),
+            ft.NavigationBarDestination(icon=ft.Icons.WHATSHOT_OUTLINED,                 selected_icon=ft.Icons.WHATSHOT,          label=labels[3]),
+            ft.NavigationBarDestination(icon=ft.Icons.PLACE_OUTLINED,                    selected_icon=ft.Icons.PLACE,             label=labels[4]),
+            ft.NavigationBarDestination(icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED,   selected_icon=ft.Icons.ACCOUNT_BALANCE_WALLET, label=labels[5]),
+            ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINED,                   selected_icon=ft.Icons.PERSON,            label=labels[6]),
         ],
     )
 
@@ -98,8 +128,12 @@ async def main(page: ft.Page):
         ], spacing=0, expand=True),
     )
 
-    # ── Boot: restore session ─────────────────────────────────────────────────
-    saved_token = await page.shared_preferences.get("goat_token")
+    # ── Boot: restore language + session from browser localStorage ────────────
+    saved_lang = await _load("goat_lang")
+    if saved_lang:
+        i18n.set_lang(saved_lang)
+
+    saved_token = await _load("goat_token")
     if saved_token:
         api.token = saved_token
         try:
@@ -108,7 +142,7 @@ async def main(page: ft.Page):
             nav_ref.current.visible = True
             show_tab(0)
         except Exception:
-            await page.shared_preferences.remove("goat_token")
+            page.run_task(_delete, "goat_token")
             show_auth()
     else:
         show_auth()
