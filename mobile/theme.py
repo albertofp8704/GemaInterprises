@@ -42,7 +42,7 @@ def card(content, padding=16, border_color=BORDER, gradient=None):
         gradient=gradient,
         border_radius=16,
         padding=padding,
-        border=ft.border.all(1, border_color),
+        border=ft.Border.all(1, border_color),
     )
 
 
@@ -148,17 +148,15 @@ def stat_tile(label, value, icon, color=PRIMARY):
 
 
 def snack(page, message, color=ACCENT):
-    page.snack_bar = ft.SnackBar(
+    page.show_dialog(ft.SnackBar(
         content=ft.Text(message, color=TEXT),
         bgcolor=color,
         duration=2500,
-    )
-    page.snack_bar.open = True
-    page.update()
+    ))
 
 
 def divider():
-    return ft.Container(height=1, bgcolor=BORDER, margin=ft.margin.symmetric(vertical=4))
+    return ft.Container(height=1, bgcolor=BORDER, margin=ft.Margin.symmetric(vertical=4))
 
 
 def section_title(text):

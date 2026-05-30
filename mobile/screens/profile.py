@@ -59,7 +59,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
             bgcolor=CARD,
             border_radius=20,
             padding=24,
-            border=ft.border.all(1, PRIMARY),
+            border=ft.Border.all(1, PRIMARY),
         )
 
         # ── Stats grid ────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                     bgcolor=CARD,
                     border_radius=14,
                     padding=10,
-                    border=ft.border.all(2, r_color if owned else BORDER),
+                    border=ft.Border.all(2, r_color if owned else BORDER),
                 )
             )
 

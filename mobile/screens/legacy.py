@@ -89,11 +89,9 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 width=280,
             ),
             bgcolor=CARD,
-            actions=[ft.TextButton("Cerrar", on_click=lambda _: (setattr(dlg, "open", False), page.update()))],
+            actions=[ft.TextButton("Cerrar", on_click=lambda _: page.pop_dialog())],
         )
-        page.dialog = dlg
-        dlg.open = True
-        page.update()
+        page.show_dialog(dlg)
 
     def _render_mine(items):
         if not items:
@@ -147,12 +145,11 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     country=country_f.value.strip() or None,
                 )
                 snack(page, "📍 Legado dropeado. Alguien lo encontrará.")
-                bs.open = False
+                page.pop_dialog()
                 load()
             except APIError as ex:
                 snack(page, str(ex), RED)
-                bs.open = False
-                page.update()
+                page.pop_dialog()
 
         bs = ft.BottomSheet(
             content=ft.Container(
@@ -172,9 +169,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
             ),
             bgcolor=CARD,
         )
-        page.overlay.append(bs)
-        bs.open = True
-        page.update()
+        page.show_dialog(bs)
 
     def _toggle_view(e):
         view_mode["v"] = "mine" if view_mode["v"] == "nearby" else "nearby"

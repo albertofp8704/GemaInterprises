@@ -40,20 +40,18 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
         reflection_f = text_input("Reflexión (opcional)", hint="¿Cómo te fue?...", multiline=True)
 
         def _complete(e):
-            bs.open = True
-            page.update()
+            page.show_dialog(bs)
 
         def _confirm(e):
             try:
                 result = api.complete_quest(q["id"], reflection=reflection_f.value or None)
-                bs.open = False
+                page.pop_dialog()
                 snack(page, f"+{result['xp_earned']} XP  +{result['tokens_earned']} 🪙  Racha: {result['current_streak']} días 🔥")
                 on_quest_done()
                 load()
             except APIError as ex:
                 snack(page, str(ex), RED)
-                bs.open = False
-                page.update()
+                page.pop_dialog()
 
         bs = ft.BottomSheet(
             content=ft.Container(
@@ -72,8 +70,6 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
             ),
             bgcolor=CARD,
         )
-        page.overlay.append(bs)
-
         return ft.Container(
             content=ft.Column([
                 ft.Row([
@@ -116,7 +112,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_quest_done):
             bgcolor=CARD,
             border_radius=16,
             padding=16,
-            border=ft.border.all(1, ACCENT if done else BORDER),
+            border=ft.Border.all(1, ACCENT if done else BORDER),
             opacity=0.6 if done else 1.0,
         )
 

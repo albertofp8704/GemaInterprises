@@ -68,13 +68,12 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 h = int(home_score_f.value or 0)
                 a = int(away_score_f.value or 0)
                 api.predict_match(m["id"], h, a)
+                page.pop_dialog()
                 snack(page, f"Predicción guardada: {m['team_home']} {h} - {a} {m['team_away']} 🔒")
-                bs.open = False
                 load_matches()
             except (APIError, ValueError) as ex:
                 snack(page, str(ex), RED)
-                bs.open = False
-                page.update()
+                page.pop_dialog()
 
         bs = ft.BottomSheet(
             content=ft.Container(
@@ -103,8 +102,6 @@ def build(page: ft.Page, api: APIClient, state: dict):
             ),
             bgcolor=CARD,
         )
-        page.overlay.append(bs)
-
         from datetime import datetime
         try:
             dt = datetime.fromisoformat(m["match_date"])
@@ -134,9 +131,9 @@ def build(page: ft.Page, api: APIClient, state: dict):
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, expand=True),
                 ]),
                 ft.Container(height=8),
-                primary_btn("🔮 Predecir marcador", on_click=lambda e: (setattr(bs, 'open', True), page.update()), expand=True),
+                primary_btn("🔮 Predecir marcador", on_click=lambda e: page.show_dialog(bs), expand=True),
             ], spacing=2),
-            bgcolor=CARD, border_radius=16, padding=16, border=ft.border.all(1, BORDER),
+            bgcolor=CARD, border_radius=16, padding=16, border=ft.Border.all(1, BORDER),
         )
 
     def _prediction_card(p: dict):

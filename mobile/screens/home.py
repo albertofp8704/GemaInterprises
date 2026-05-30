@@ -59,7 +59,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
             ),
             border_radius=20,
             padding=20,
-            border=ft.border.all(1, PRIMARY if villain else BORDER),
+            border=ft.Border.all(1, PRIMARY if villain else BORDER),
         )
 
         # ── Villain Arc pill ─────────────────────────────────────────────────
@@ -98,7 +98,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                         ft.Text("Quest\nde hoy", size=13, color=TEXT, text_align=ft.TextAlign.CENTER),
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
                     bgcolor=SURFACE, border_radius=14, padding=14, expand=True,
-                    border=ft.border.all(1, BORDER),
+                    border=ft.Border.all(1, BORDER),
                 ),
             ),
             ft.GestureDetector(
@@ -109,7 +109,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                         ft.Text("Predecir\npartido", size=13, color=TEXT, text_align=ft.TextAlign.CENTER),
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
                     bgcolor=SURFACE, border_radius=14, padding=14, expand=True,
-                    border=ft.border.all(1, BORDER),
+                    border=ft.Border.all(1, BORDER),
                 ),
             ),
             ft.Container(
@@ -118,7 +118,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                     ft.Text("Mundial\n2026", size=13, color=GOLD, text_align=ft.TextAlign.CENTER, weight=ft.FontWeight.W_600),
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
                 bgcolor=SURFACE, border_radius=14, padding=14, expand=True,
-                border=ft.border.all(1, GOLD),
+                border=ft.Border.all(1, GOLD),
             ),
         ], spacing=8)
 

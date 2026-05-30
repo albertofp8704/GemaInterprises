@@ -9,8 +9,6 @@ def main(page: ft.Page):
     page.bgcolor      = BG
     page.theme_mode   = ft.ThemeMode.DARK
     page.padding      = 0
-    page.window_width  = 390
-    page.window_height = 844
 
     page.theme = ft.Theme(
         color_scheme_seed=PRIMARY,

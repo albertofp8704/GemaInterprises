@@ -45,24 +45,21 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 content=ft.Text("Has terminado esta era. Recibirás todos los bonos.", color=MUTED),
                 bgcolor=CARD,
                 actions=[
-                    ft.TextButton("Cancelar", on_click=lambda _: (setattr(dlg, 'open', False), page.update())),
+                    ft.TextButton("Cancelar", on_click=lambda _: page.pop_dialog()),
                     primary_btn("Completar 🏆", color=ACCENT, on_click=lambda _: _do_complete(dlg)),
                 ],
             )
-            page.dialog = dlg
-            dlg.open = True
-            page.update()
+            page.show_dialog(dlg)
 
         def _do_complete(dlg):
             try:
                 r = api.complete_villain_arc(arc_id)
-                dlg.open = False
+                page.pop_dialog()
                 snack(page, f"Villain Arc completado! +{r['bonus_tokens']} tokens 🏆")
                 load()
             except APIError as ex:
                 snack(page, str(ex), RED)
-                dlg.open = False
-                page.update()
+                page.pop_dialog()
 
         # Arc header card
         arc_card = ft.Container(
@@ -98,7 +95,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
             ),
             border_radius=20,
             padding=20,
-            border=ft.border.all(1, VILLAIN),
+            border=ft.Border.all(1, VILLAIN),
         )
 
         # Goals list
