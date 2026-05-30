@@ -19,26 +19,40 @@ async def main(page: ft.Page):
     api   = APIClient()
     state = {}
 
-    # SharedPreferences: browser localStorage — persists across Railway redeploys
-    prefs = ft.SharedPreferences()
+    # Persistent storage: try SharedPreferences (browser localStorage),
+    # fall back silently to an in-memory dict so the app always boots.
+    _mem: dict = {}
+    try:
+        _prefs = ft.SharedPreferences()
+    except Exception:
+        _prefs = None
 
     async def _store(key: str, value: str):
-        try:
-            await prefs.set(key, value)
-        except Exception:
-            pass
+        _mem[key] = value
+        if _prefs:
+            try:
+                await _prefs.set(key, value)
+            except Exception:
+                pass
 
     async def _load(key: str) -> str | None:
-        try:
-            return await prefs.get(key)
-        except Exception:
-            return None
+        if _prefs:
+            try:
+                val = await _prefs.get(key)
+                if val is not None:
+                    _mem[key] = val
+                    return val
+            except Exception:
+                pass
+        return _mem.get(key)
 
     async def _delete(key: str):
-        try:
-            await prefs.remove(key)
-        except Exception:
-            pass
+        _mem.pop(key, None)
+        if _prefs:
+            try:
+                await _prefs.remove(key)
+            except Exception:
+                pass
 
     # ── Content area ─────────────────────────────────────────────────────────
     content_ref = ft.Ref[ft.Container]()
