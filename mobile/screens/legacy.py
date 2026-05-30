@@ -3,39 +3,59 @@ from ..theme import *
 from ..api import APIClient, APIError
 
 
-# Default coords = Madrid (users will use GPS in production)
 DEFAULT_LAT = 40.4168
 DEFAULT_LNG = -3.7038
 
 
 def build(page: ft.Page, api: APIClient, state: dict):
-    content_col = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
-    view_mode   = {"v": "nearby"}   # "nearby" | "mine"
+    nearby_col = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    mine_col   = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
-    def load():
-        content_col.controls.clear()
+    def load_nearby():
+        nearby_col.controls.clear()
+        nearby_col.controls.append(ft.Container(height=4))
         try:
-            if view_mode["v"] == "nearby":
-                items = api.nearby_legacies(DEFAULT_LAT, DEFAULT_LNG, radius_km=50)
-                _render_nearby(items)
-            else:
-                items = api.my_legacies()
-                _render_mine(items)
+            items = api.nearby_legacies(DEFAULT_LAT, DEFAULT_LNG, radius_km=50)
         except APIError as e:
-            content_col.controls.append(ft.Text(str(e), color=RED))
-        page.update()
+            nearby_col.controls.append(ft.Text(str(e), color=RED))
+            page.update()
+            return
 
-    def _render_nearby(items):
         if not items:
-            content_col.controls.append(card(ft.Column([
+            nearby_col.controls.append(card(ft.Column([
                 ft.Text("📍", size=40),
                 body("No hay legados cercanos", size=16),
                 muted("Sé el primero en dejar uno"),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
+            page.update()
             return
 
         for item in items:
-            content_col.controls.append(_nearby_card(item))
+            nearby_col.controls.append(_nearby_card(item))
+        page.update()
+
+    def load_mine():
+        mine_col.controls.clear()
+        mine_col.controls.append(ft.Container(height=4))
+        try:
+            items = api.my_legacies()
+        except APIError as e:
+            mine_col.controls.append(ft.Text(str(e), color=RED))
+            page.update()
+            return
+
+        if not items:
+            mine_col.controls.append(card(ft.Column([
+                ft.Text("📍", size=40),
+                body("Aún no has dejado legados", size=16),
+                muted("Dropea uno y que lo encuentren"),
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
+            page.update()
+            return
+
+        for item in items:
+            mine_col.controls.append(_mine_card(item))
+        page.update()
 
     def _nearby_card(item: dict):
         legacy_id = item["id"]
@@ -93,18 +113,6 @@ def build(page: ft.Page, api: APIClient, state: dict):
         )
         page.show_dialog(dlg)
 
-    def _render_mine(items):
-        if not items:
-            content_col.controls.append(card(ft.Column([
-                ft.Text("📍", size=40),
-                body("Aún no has dejado legados", size=16),
-                muted("Dropea uno y que lo encuentren"),
-            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
-            return
-
-        for item in items:
-            content_col.controls.append(_mine_card(item))
-
     def _mine_card(item: dict):
         found  = item.get("found_count", 0)
         active = item.get("is_active", True)
@@ -128,9 +136,10 @@ def build(page: ft.Page, api: APIClient, state: dict):
         ], spacing=6))
 
     def _show_drop_form(e):
-        content_f  = text_input("Tu mensaje para el mundo", multiline=True, hint="Escribe lo que quieras que alguien encuentre...")
-        city_f     = text_input("Ciudad", hint="Madrid")
-        country_f  = text_input("País", hint="España")
+        content_f = text_input("Tu mensaje para el mundo", multiline=True,
+                               hint="Escribe lo que quieras que alguien encuentre...")
+        city_f    = text_input("Ciudad", hint="Madrid")
+        country_f = text_input("País", hint="España")
 
         def _drop(e):
             if not content_f.value.strip():
@@ -146,7 +155,7 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 )
                 snack(page, "📍 Legado dropeado. Alguien lo encontrará.")
                 page.pop_dialog()
-                load()
+                load_nearby()
             except APIError as ex:
                 snack(page, str(ex), RED)
                 page.pop_dialog()
@@ -171,19 +180,14 @@ def build(page: ft.Page, api: APIClient, state: dict):
         )
         page.show_dialog(bs)
 
-    def _toggle_view(e):
-        view_mode["v"] = "mine" if view_mode["v"] == "nearby" else "nearby"
-        tabs.selected_index = 0 if view_mode["v"] == "nearby" else 1
-        load()
+    def _on_tab_change(e):
+        idx = int(e.data)
+        if idx == 0:
+            load_nearby()
+        else:
+            load_mine()
 
-    tabs = ft.Tabs(
-        selected_index=0,
-        animation_duration=200,
-        on_change=lambda e: (view_mode.update({"v": "nearby" if e.control.selected_index == 0 else "mine"}), load()),
-        controls=[ft.Tab(label="Cercanos 📍"), ft.Tab(label="Mis legados ✍️")],
-    )
-
-    load()
+    load_nearby()
 
     return ft.Container(
         content=ft.Column([
@@ -194,9 +198,22 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 padding=ft.Padding.only(top=16, bottom=8),
             ),
-            tabs,
-            ft.Container(height=8),
-            content_col,
+            ft.Tabs(
+                content=ft.Column([
+                    ft.TabBar(
+                        tabs=[ft.Tab(label="Cercanos 📍"), ft.Tab(label="Mis legados ✍️")],
+                        scrollable=False,
+                    ),
+                    ft.TabBarView(
+                        expand=True,
+                        controls=[nearby_col, mine_col],
+                    ),
+                ], expand=True, spacing=0),
+                length=2,
+                selected_index=0,
+                expand=True,
+                on_change=_on_tab_change,
+            ),
         ], spacing=0, expand=True),
         bgcolor=BG,
         expand=True,

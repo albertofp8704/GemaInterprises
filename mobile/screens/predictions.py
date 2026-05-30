@@ -4,42 +4,42 @@ from ..api import APIClient, APIError
 
 
 def build(page: ft.Page, api: APIClient, state: dict):
-    tab_content = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
-    current_tab = {"v": 0}
+    matches_col = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    preds_col   = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
     def load_matches():
-        tab_content.controls.clear()
+        matches_col.controls.clear()
         try:
             matches = api.matches(status="upcoming")
         except APIError as e:
-            tab_content.controls.append(ft.Text(str(e), color=RED))
+            matches_col.controls.append(ft.Text(str(e), color=RED))
             page.update()
             return
 
         if not matches:
-            tab_content.controls.append(card(ft.Column([
+            matches_col.controls.append(card(ft.Column([
                 ft.Text("⚽", size=40),
                 body("No hay partidos próximos", size=16),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8), padding=32))
             page.update()
             return
 
-        tab_content.controls.append(ft.Container(height=4))
+        matches_col.controls.append(ft.Container(height=4))
         for m in matches:
-            tab_content.controls.append(_match_card(m))
+            matches_col.controls.append(_match_card(m))
         page.update()
 
     def load_my_predictions():
-        tab_content.controls.clear()
+        preds_col.controls.clear()
         try:
             preds = api.my_predictions()
         except APIError as e:
-            tab_content.controls.append(ft.Text(str(e), color=RED))
+            preds_col.controls.append(ft.Text(str(e), color=RED))
             page.update()
             return
 
         if not preds:
-            tab_content.controls.append(card(ft.Column([
+            preds_col.controls.append(card(ft.Column([
                 ft.Text("🔮", size=40),
                 body("Aún no has predicho nada", size=16),
                 muted("Predice el marcador de un partido"),
@@ -47,9 +47,9 @@ def build(page: ft.Page, api: APIClient, state: dict):
             page.update()
             return
 
-        tab_content.controls.append(ft.Container(height=4))
+        preds_col.controls.append(ft.Container(height=4))
         for p in preds:
-            tab_content.controls.append(_prediction_card(p))
+            preds_col.controls.append(_prediction_card(p))
         page.update()
 
     def _match_card(m: dict):
@@ -162,23 +162,13 @@ def build(page: ft.Page, api: APIClient, state: dict):
         ], spacing=10))
 
     def _on_tab_change(e):
-        current_tab["v"] = e.control.selected_index
-        if current_tab["v"] == 0:
+        idx = int(e.data)
+        if idx == 0:
             load_matches()
         else:
             load_my_predictions()
 
     load_matches()
-
-    tabs = ft.Tabs(
-        selected_index=0,
-        animation_duration=200,
-        on_change=_on_tab_change,
-        controls=[
-            ft.Tab(label="Partidos ⚽"),
-            ft.Tab(label="Mis predicciones 🔮"),
-        ],
-    )
 
     return ft.Container(
         content=ft.Column([
@@ -186,9 +176,25 @@ def build(page: ft.Page, api: APIClient, state: dict):
                 content=h1("Mundial 2026 🏆", size=22),
                 padding=ft.Padding.only(top=16, bottom=8),
             ),
-            tabs,
-            ft.Container(height=8),
-            tab_content,
+            ft.Tabs(
+                content=ft.Column([
+                    ft.TabBar(
+                        tabs=[
+                            ft.Tab(label="Partidos ⚽"),
+                            ft.Tab(label="Mis predicciones 🔮"),
+                        ],
+                        scrollable=False,
+                    ),
+                    ft.TabBarView(
+                        expand=True,
+                        controls=[matches_col, preds_col],
+                    ),
+                ], expand=True, spacing=0),
+                length=2,
+                selected_index=0,
+                expand=True,
+                on_change=_on_tab_change,
+            ),
         ], spacing=0, expand=True),
         bgcolor=BG,
         expand=True,
