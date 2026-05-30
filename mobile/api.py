@@ -145,6 +145,12 @@ class APIClient:
     def flashcards(self) -> list:
         return self._req("GET", "/api/goat/tokens/flashcards")
 
+    def sync_flashcard_images(self) -> dict:
+        try:
+            return self._req("POST", "/api/goat/tokens/flashcards/sync-images")
+        except APIError:
+            return {}
+
     def buy_flashcard(self, card_id: int) -> dict:
         return self._req("POST", f"/api/goat/tokens/flashcards/{card_id}/buy")
 

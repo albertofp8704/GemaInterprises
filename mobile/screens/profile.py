@@ -57,6 +57,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
 
     def load():
         content_col.controls.clear()
+        api.sync_flashcard_images()
         try:
             profile  = api.get_profile()
             balance  = api.token_balance()

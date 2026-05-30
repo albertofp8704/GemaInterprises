@@ -131,3 +131,21 @@ def _serialize_card(c: FlashCard) -> dict:
         "minted":        c.minted,
         "card_metadata": c.card_metadata,
     }
+
+
+@router.post("/flashcards/sync-images")
+async def sync_flashcard_images(
+    _: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    from ..seed_goat import FLASH_CARDS
+    updated = 0
+    for card_data in FLASH_CARDS:
+        if not card_data.get("image_url"):
+            continue
+        card = db.query(FlashCard).filter(FlashCard.name == card_data["name"]).first()
+        if card and card.image_url != card_data["image_url"]:
+            card.image_url = card_data["image_url"]
+            updated += 1
+    db.commit()
+    return {"updated": updated}

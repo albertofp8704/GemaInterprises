@@ -52,7 +52,8 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
 
         # ── Profile card (leather football badge) ─────────────────────────────
         player_card = ft.Container(
-            content=ft.Column([
+            content=ft.Container(
+              content=ft.Column([
                 ft.Row([
                     # Metallic hex avatar
                     ft.Container(
@@ -76,6 +77,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                             ft.Text(f"{tokens} GOAT", size=12, color=_GOLDB,
                                     weight=ft.FontWeight.W_600),
                             ft.Text(" · ", size=12, color=_ROPE),
+                            ft.Text("🔥", size=12),
                             ft.Text(f"{streak} d", size=12, color=_ROPE),
                         ], spacing=2),
                     ], spacing=4, expand=True),
@@ -112,13 +114,17 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
                     ft.Container(width=8),
                     ft.Text(f"XP {xp} / {level * 500}", size=11, color=_ROPE),
                 ]),
-            ], spacing=0),
+              ], spacing=0),
+              border_radius=14,
+              border=ft.Border.all(1, "#4a6030"),
+              padding=12,
+            ),
             gradient=ft.LinearGradient(
                 begin=ft.Alignment(-1, -1), end=ft.Alignment(1, 1),
                 colors=["#2d4518", "#1a2d0d", "#0f1a08"],
             ),
             border_radius=18,
-            padding=16,
+            padding=4,
             border=ft.Border.all(2, _COPPER),
         )
 
@@ -168,6 +174,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
         action_row = ft.Row([
             ft.GestureDetector(
                 on_tap=lambda e: on_go_quests(),
+                expand=True,
                 content=ft.Container(
                     content=ft.Column([
                         ft.Text("🎯", size=30),
@@ -185,6 +192,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
             ),
             ft.GestureDetector(
                 on_tap=lambda e: on_go_predictions(),
+                expand=True,
                 content=ft.Container(
                     content=ft.Column([
                         ft.Text("🔮", size=30),
@@ -203,7 +211,7 @@ def build(page: ft.Page, api: APIClient, state: dict, on_go_quests, on_go_predic
             ft.Container(
                 content=ft.Column([
                     ft.Text("⚽", size=30),
-                    ft.Text("Mundial\n2026", size=11, color="#2a1404",
+                    ft.Text("Mundial\n2026", size=11, color="#fff8e0",
                             text_align=ft.TextAlign.CENTER, weight=ft.FontWeight.BOLD),
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
                 gradient=ft.LinearGradient(
