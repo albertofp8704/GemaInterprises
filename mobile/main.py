@@ -23,13 +23,22 @@ async def main(page: ft.Page):
     prefs = ft.SharedPreferences()
 
     async def _store(key: str, value: str):
-        await prefs.set(key, value)
+        try:
+            await prefs.set(key, value)
+        except Exception:
+            pass
 
     async def _load(key: str) -> str | None:
-        return await prefs.get(key)
+        try:
+            return await prefs.get(key)
+        except Exception:
+            return None
 
     async def _delete(key: str):
-        await prefs.remove(key)
+        try:
+            await prefs.remove(key)
+        except Exception:
+            pass
 
     # ── Content area ─────────────────────────────────────────────────────────
     content_ref = ft.Ref[ft.Container]()
