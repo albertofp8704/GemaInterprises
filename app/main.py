@@ -75,6 +75,12 @@ async def startup():
     seed()
 
 
+# ── Health check (Railway uses this to verify the app is alive) ──
+@app.get("/health")
+async def health():
+    return {"status": "ok", "app": "GOAT Arc"}
+
+
 # ── Static files ─────────────────────────────────────────────────
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

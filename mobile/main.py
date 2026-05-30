@@ -1,7 +1,7 @@
 import flet as ft
 from .theme import BG, PRIMARY, CARD, TEXT, MUTED, BORDER, GOLD, VILLAIN
 from .api import APIClient
-from .screens import auth, home, quests, predictions, villain, legacy, profile
+from .screens import auth, home, quests, predictions, villain, legacy, profile, wallet
 
 
 def main(page: ft.Page):
@@ -53,6 +53,8 @@ def main(page: ft.Page):
         elif idx == 4:
             swap(legacy.build(page, api, state))
         elif idx == 5:
+            swap(wallet.build(page, api, state))
+        elif idx == 6:
             swap(profile.build(page, api, state, on_logout=show_auth))
         page.update()
 
@@ -67,12 +69,13 @@ def main(page: ft.Page):
         on_change=on_nav_change,
         visible=False,
         destinations=[
-            ft.NavigationBarDestination(icon=ft.icons.HOME_OUTLINED,       selected_icon=ft.icons.HOME,             label="Home"),
-            ft.NavigationBarDestination(icon=ft.icons.CHECKLIST_OUTLINED,  selected_icon=ft.icons.CHECKLIST,        label="Quests"),
-            ft.NavigationBarDestination(icon=ft.icons.SPORTS_SOCCER,       selected_icon=ft.icons.SPORTS_SOCCER,    label="Mundial"),
-            ft.NavigationBarDestination(icon=ft.icons.WHATSHOT_OUTLINED,   selected_icon=ft.icons.WHATSHOT,         label="Villain"),
-            ft.NavigationBarDestination(icon=ft.icons.PLACE_OUTLINED,      selected_icon=ft.icons.PLACE,            label="Legados"),
-            ft.NavigationBarDestination(icon=ft.icons.PERSON_OUTLINED,     selected_icon=ft.icons.PERSON,           label="Perfil"),
+            ft.NavigationBarDestination(icon=ft.icons.HOME_OUTLINED,        selected_icon=ft.icons.HOME,              label="Home"),
+            ft.NavigationBarDestination(icon=ft.icons.CHECKLIST_OUTLINED,   selected_icon=ft.icons.CHECKLIST,         label="Quests"),
+            ft.NavigationBarDestination(icon=ft.icons.SPORTS_SOCCER,        selected_icon=ft.icons.SPORTS_SOCCER,     label="Mundial"),
+            ft.NavigationBarDestination(icon=ft.icons.WHATSHOT_OUTLINED,    selected_icon=ft.icons.WHATSHOT,          label="Villain"),
+            ft.NavigationBarDestination(icon=ft.icons.PLACE_OUTLINED,       selected_icon=ft.icons.PLACE,             label="Legados"),
+            ft.NavigationBarDestination(icon=ft.icons.ACCOUNT_BALANCE_WALLET_OUTLINED, selected_icon=ft.icons.ACCOUNT_BALANCE_WALLET, label="Wallet"),
+            ft.NavigationBarDestination(icon=ft.icons.PERSON_OUTLINED,      selected_icon=ft.icons.PERSON,            label="Perfil"),
         ],
     )
 

@@ -147,3 +147,25 @@ class APIClient:
 
     def my_flashcards(self) -> list:
         return self._req("GET", "/api/goat/tokens/flashcards/mine")
+
+    # ── Wallet ───────────────────────────────────────────────────────────────
+    def wallet_challenge(self) -> dict:
+        return self._req("GET", "/api/wallet/challenge")
+
+    def wallet_connect(self, wallet_address: str, signature: str) -> dict:
+        return self._req("POST", "/api/wallet/connect",
+                         json={"wallet_address": wallet_address, "signature": signature})
+
+    def wallet_status(self) -> dict:
+        return self._req("GET", "/api/wallet/status")
+
+    def mint_tokens_onchain(self, amount: int) -> dict:
+        return self._req("POST", "/api/wallet/mint-tokens", json={"amount_tokens": amount})
+
+    def mint_legacy_nft(self, legacy_id: int, token_uri: str) -> dict:
+        return self._req("POST", "/api/wallet/mint-legacy-nft",
+                         json={"legacy_id": legacy_id, "token_uri": token_uri})
+
+    def mint_flashcard_nft(self, user_flashcard_id: int) -> dict:
+        return self._req("POST", "/api/wallet/mint-flashcard",
+                         json={"user_flashcard_id": user_flashcard_id})
