@@ -61,8 +61,8 @@ def build(page: ft.Page, api: APIClient, on_login):
     _refresh()
 
     logo = ft.Column([
-        ft.Text("GOAT", size=52, color=PRIMARY, weight=ft.FontWeight.W_900, letter_spacing=-2),
-        ft.Text("ARC", size=52, color=GOLD, weight=ft.FontWeight.W_900, letter_spacing=-2),
+        ft.Text("GOAT", size=52, color=PRIMARY, weight=ft.FontWeight.W_900, style=ft.TextStyle(letter_spacing=-2)),
+        ft.Text("ARC", size=52, color=GOLD, weight=ft.FontWeight.W_900, style=ft.TextStyle(letter_spacing=-2)),
         ft.Container(height=4),
         muted("Escribe tu historia. Gana tu legado.", size=14),
     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0)

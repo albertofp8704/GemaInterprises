@@ -160,4 +160,4 @@ def divider():
 
 
 def section_title(text):
-    return ft.Text(text.upper(), size=11, color=MUTED, weight=ft.FontWeight.W_600, letter_spacing=1.2)
+    return ft.Text(text.upper(), size=11, color=MUTED, weight=ft.FontWeight.W_600, style=ft.TextStyle(letter_spacing=1.2))
