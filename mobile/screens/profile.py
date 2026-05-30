@@ -289,11 +289,18 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                     content=ft.Image(
                         src=img_url,
                         fit=ft.BoxFit.COVER,
-                        error_content=ft.Text(fallback_emoji, size=32),
+                        expand=True,
+                        error_content=ft.Container(
+                            content=ft.Text(fallback_emoji, size=32),
+                            alignment=ft.Alignment.CENTER,
+                            expand=True,
+                        ),
                     ),
                     height=115,
+                    bgcolor=SURFACE,
                     clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
                     border_radius=ft.BorderRadius.only(top_left=12, top_right=12),
+                    alignment=ft.Alignment.CENTER,
                 )
             else:
                 top = ft.Container(

@@ -62,31 +62,31 @@ WC_MATCHES = [
 FLASH_CARDS = [
     dict(name="Lionel Messi - GOAT Edition",   description="The greatest of all time. 2022 Champion.",
          rarity="legendary", card_type="player",  token_price=500, supply=100,
-         image_url="https://commons.wikimedia.org/wiki/Special:FilePath/Lionel_Messi_20180626.jpg?width=240",
+         image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Lionel_Messi_20180626.jpg/300px-Lionel_Messi_20180626.jpg",
          card_metadata={"nation": "Argentina", "wc_wins": 1}),
     dict(name="Cristiano Ronaldo - Legacy",    description="Legacy card for the all-time top scorer.",
          rarity="legendary", card_type="player",  token_price=500, supply=100,
-         image_url="https://commons.wikimedia.org/wiki/Special:FilePath/Cristiano_Ronaldo_2018.jpg?width=240",
+         image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Cristiano_Ronaldo_2018.jpg/300px-Cristiano_Ronaldo_2018.jpg",
          card_metadata={"nation": "Portugal",  "goals": 900}),
     dict(name="Vinicius Jr - Villain Arc",     description="Activated his villain arc and never looked back.",
          rarity="epic",      card_type="player",  token_price=200, supply=500,
-         image_url="https://commons.wikimedia.org/wiki/Special:FilePath/Vinicius_Junior_2022.jpg?width=240",
+         image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Vinicius_Jr_2021.jpg/300px-Vinicius_Jr_2021.jpg",
          card_metadata={"nation": "Brazil",    "position": "LW"}),
     dict(name="Jude Bellingham - Era",         description="He defined a generation. His era is now.",
          rarity="epic",      card_type="player",  token_price=200, supply=500,
-         image_url="https://commons.wikimedia.org/wiki/Special:FilePath/Jude_Bellingham_2022.jpg?width=240",
+         image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Jude_Bellingham_England_2022.jpg/300px-Jude_Bellingham_England_2022.jpg",
          card_metadata={"nation": "England",   "position": "CM"}),
     dict(name="Kylian Mbappé - Speed Run",     description="Fastest man in football. Legendary pace card.",
          rarity="epic",      card_type="player",  token_price=200, supply=500,
-         image_url="https://commons.wikimedia.org/wiki/Special:FilePath/Kylian_Mbapp%C3%A9_2019.jpg?width=240",
+         image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Kylian_Mbapp%C3%A9_2018.jpg/300px-Kylian_Mbapp%C3%A9_2018.jpg",
          card_metadata={"nation": "France",    "position": "ST"}),
     dict(name="Estadio Azteca - Opening Night",description="The legendary venue where WC 2026 kicks off.",
          rarity="rare",      card_type="stadium", token_price=75,  supply=2000,
-         image_url="https://commons.wikimedia.org/wiki/Special:FilePath/Estadio_Azteca_-_Vista_lateral.jpg?width=240",
+         image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Estadio_Azteca_-_Vista_lateral.jpg/300px-Estadio_Azteca_-_Vista_lateral.jpg",
          card_metadata={"city": "Mexico City", "capacity": 83000}),
     dict(name="MetLife Stadium - The Final",   description="Where legends become GOATs. WC 2026 Final venue.",
          rarity="rare",      card_type="stadium", token_price=75,  supply=2000,
-         image_url="https://commons.wikimedia.org/wiki/Special:FilePath/MetLife_Stadium.jpg?width=240",
+         image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/MetLife_Stadium.jpg/300px-MetLife_Stadium.jpg",
          card_metadata={"city": "New York",    "capacity": 82500}),
     dict(name="Total Press - Tactic Card",     description="High press, no mercy. Villain Arc approved.",
          rarity="rare",      card_type="tactic",  token_price=50,  supply=None, card_metadata={"style": "high-press"}),
@@ -115,17 +115,17 @@ def seed():
                 db.add(FlashCard(**c))
             print(f"Seeded {len(FLASH_CARDS)} Flash Cards")
         else:
-            # Migrate image_url into existing cards that don't have one yet
+            # Always sync image_url from seed data (fixes wrong/outdated URLs)
             updated = 0
             for card_data in FLASH_CARDS:
                 if not card_data.get("image_url"):
                     continue
                 card = db.query(FlashCard).filter(FlashCard.name == card_data["name"]).first()
-                if card and not card.image_url:
+                if card and card.image_url != card_data["image_url"]:
                     card.image_url = card_data["image_url"]
                     updated += 1
             if updated:
-                print(f"Migrated image_url for {updated} Flash Cards")
+                print(f"Updated image_url for {updated} Flash Cards")
 
         db.commit()
         print("Seed complete ✅")
