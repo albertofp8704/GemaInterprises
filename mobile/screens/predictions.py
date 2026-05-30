@@ -175,8 +175,8 @@ def build(page: ft.Page, api: APIClient, state: dict):
         animation_duration=200,
         on_change=_on_tab_change,
         tabs=[
-            ft.Tab(text="Partidos ⚽"),
-            ft.Tab(text="Mis predicciones 🔮"),
+            ft.Tab(label="Partidos ⚽"),
+            ft.Tab(label="Mis predicciones 🔮"),
         ],
         indicator_color=PRIMARY,
         label_color=TEXT,
