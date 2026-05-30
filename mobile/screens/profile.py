@@ -272,35 +272,64 @@ def build(page: ft.Page, api: APIClient, state: dict, on_logout):
                 snack(page, str(ex), RED)
 
         card_grid = ft.GridView(
-            runs_count=2, max_extent=200, child_aspect_ratio=0.75,
+            runs_count=2, max_extent=200, child_aspect_ratio=0.65,
             spacing=8, run_spacing=8, expand=False,
         )
+        TYPE_EMOJI = {"player": "⚽", "stadium": "🏟", "tactic": "📋", "moment": "⭐"}
         for fc in shop[:8]:
-            r_color = RARITY_COLOR.get(fc["rarity"], MUTED)
-            owned   = fc["id"] in owned_ids
+            r_color   = RARITY_COLOR.get(fc["rarity"], MUTED)
+            owned     = fc["id"] in owned_ids
+            img_url   = fc.get("image_url")
+            ctype     = fc.get("card_type", "")
+            fallback_emoji = TYPE_EMOJI.get(ctype, "🃏")
+
+            # Top visual: photo if available, else emoji block
+            if img_url:
+                top = ft.Container(
+                    content=ft.Image(
+                        src=img_url,
+                        fit=ft.ImageFit.COVER,
+                        error_content=ft.Text(fallback_emoji, size=32),
+                    ),
+                    height=115,
+                    clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+                    border_radius=ft.BorderRadius.only(top_left=12, top_right=12),
+                )
+            else:
+                top = ft.Container(
+                    content=ft.Text(fallback_emoji, size=32),
+                    height=80,
+                    bgcolor=SURFACE,
+                    border_radius=ft.BorderRadius.only(top_left=12, top_right=12),
+                    alignment=ft.Alignment.CENTER,
+                )
+
             card_grid.controls.append(
                 ft.Container(
                     content=ft.Column([
+                        top,
                         ft.Container(
-                            content=ft.Text(
-                                {"player": "⚽", "stadium": "🏟", "tactic": "📋", "moment": "⭐"}.get(fc.get("card_type", ""), "🃏"),
-                                size=32,
-                            ),
-                            bgcolor=SURFACE, border_radius=10, padding=12,
-                            alignment=ft.Alignment.CENTER,
+                            content=ft.Column([
+                                ft.Text(fc["name"][:20], size=11, color=TEXT,
+                                        weight=ft.FontWeight.W_600, max_lines=2,
+                                        overflow=ft.TextOverflow.ELLIPSIS),
+                                ft.Container(height=2),
+                                badge(fc["rarity"].upper(), r_color, size=8),
+                                ft.Container(height=4),
+                                primary_btn(
+                                    "✓ Tuya" if owned else f"🪙 {fc['token_price']}",
+                                    on_click=(lambda e, cid=fc["id"], cn=fc["name"], cp=fc["token_price"]: _buy(cid, cn, cp)) if not owned else lambda e: None,
+                                    color=BORDER if owned else r_color,
+                                    disabled=owned,
+                                ),
+                            ], spacing=2, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                            padding=ft.Padding.symmetric(horizontal=8, vertical=8),
                         ),
-                        body(fc["name"][:22], size=11),
-                        badge(fc["rarity"].upper(), r_color, size=8),
-                        ft.Container(height=2),
-                        primary_btn(
-                            "✓" if owned else f"🪙 {fc['token_price']}",
-                            on_click=(lambda e, cid=fc["id"], cn=fc["name"], cp=fc["token_price"]: _buy(cid, cn, cp)) if not owned else lambda e: None,
-                            color=BORDER if owned else r_color,
-                            disabled=owned,
-                        ),
-                    ], spacing=4, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                    bgcolor=CARD, border_radius=14, padding=10,
+                    ], spacing=0),
+                    bgcolor=CARD,
+                    border_radius=14,
                     border=ft.Border.all(2, r_color if owned else BORDER),
+                    clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
                 )
             )
 
