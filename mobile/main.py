@@ -71,7 +71,8 @@ async def main(page: ft.Page):
     nav_bar = ft.NavigationBar(
         ref=nav_ref,
         selected_index=0,
-        bgcolor=CARD,
+        bgcolor="#1a1208",
+        indicator_color="#d4a02030",
         on_change=on_nav_change,
         visible=False,
         destinations=[
