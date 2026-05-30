@@ -1,0 +1,189 @@
+import flet as ft
+from ..theme import *
+from ..api import APIClient, APIError
+
+
+def build(page: ft.Page, api: APIClient, state: dict):
+    content_col = ft.Column(scroll=ft.ScrollMode.AUTO, spacing=12, expand=True)
+
+    def load():
+        content_col.controls.clear()
+        try:
+            arc_data = api.active_villain_arc()
+        except APIError as e:
+            content_col.controls.append(ft.Text(str(e), color=RED))
+            page.update()
+            return
+
+        if arc_data.get("active"):
+            _show_active_arc(arc_data)
+        else:
+            _show_start_form()
+        page.update()
+
+    def _show_active_arc(arc: dict):
+        streak  = arc.get("streak_days", 0)
+        power   = arc.get("power_level", 1)
+        arc_id  = arc.get("id")
+        goals   = arc.get("goals") or []
+        quote   = arc.get("quote") or ""
+
+        power_emojis = ["", "⚡", "🔥", "💀", "🐐", "😈", "👹", "👑"]
+        power_icon   = power_emojis[min(power, len(power_emojis) - 1)]
+
+        def _checkin(e):
+            try:
+                r = api.villain_checkin(arc_id)
+                snack(page, f"Day {r['streak_days']} 😈  +{r['xp_earned']} XP  Power Lv {r['power_level']}")
+                load()
+            except APIError as ex:
+                snack(page, str(ex), RED)
+
+        def _complete_arc(e):
+            dlg = ft.AlertDialog(
+                title=ft.Text("¿Completar Villain Arc?", color=TEXT),
+                content=ft.Text("Has terminado esta era. Recibirás todos los bonos.", color=MUTED),
+                bgcolor=CARD,
+                actions=[
+                    ft.TextButton("Cancelar", on_click=lambda _: (setattr(dlg, 'open', False), page.update())),
+                    primary_btn("Completar 🏆", color=ACCENT, on_click=lambda _: _do_complete(dlg)),
+                ],
+            )
+            page.dialog = dlg
+            dlg.open = True
+            page.update()
+
+        def _do_complete(dlg):
+            try:
+                r = api.complete_villain_arc(arc_id)
+                dlg.open = False
+                snack(page, f"Villain Arc completado! +{r['bonus_tokens']} tokens 🏆")
+                load()
+            except APIError as ex:
+                snack(page, str(ex), RED)
+                dlg.open = False
+                page.update()
+
+        # Arc header card
+        arc_card = ft.Container(
+            content=ft.Column([
+                ft.Row([
+                    ft.Text("😈", size=32),
+                    ft.Column([
+                        h2(arc.get("title", "Mi Villain Arc")),
+                        ft.Text(f'"{quote}"', size=13, color=MUTED, italic=True) if quote else ft.Container(),
+                    ], expand=True, spacing=2),
+                ], spacing=12),
+                ft.Container(height=12),
+                ft.Row([
+                    ft.Column([
+                        ft.Text(str(streak), size=36, color=VILLAIN, weight=ft.FontWeight.W_900),
+                        muted("días seguidos"),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, expand=True),
+                    ft.Container(width=1, bgcolor=BORDER, height=60),
+                    ft.Column([
+                        ft.Text(f"Lv {power} {power_icon}", size=28, color=GOLD, weight=ft.FontWeight.W_900),
+                        muted("poder"),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, expand=True),
+                ]),
+                ft.Container(height=12),
+                primary_btn("Check-in diario 😈", on_click=_checkin, expand=True, color=VILLAIN),
+                ft.Container(height=6),
+                ghost_btn("Completar Arc 🏆", on_click=_complete_arc),
+            ], spacing=4),
+            gradient=ft.LinearGradient(
+                begin=ft.alignment.top_left,
+                end=ft.alignment.bottom_right,
+                colors=["#1a0000", "#2d0000"],
+            ),
+            border_radius=20,
+            padding=20,
+            border=ft.border.all(1, VILLAIN),
+        )
+
+        # Goals list
+        goal_rows = [
+            ft.Row([ft.Icon(ft.icons.CHECK_BOX_OUTLINE_BLANK, size=18, color=MUTED), body(g, size=14)], spacing=8)
+            for g in goals
+        ] if goals else [muted("Sin objetivos definidos")]
+        goals_col = ft.Column([section_title("Objetivos"), *goal_rows], spacing=8)
+
+        # Power level progress
+        next_milestone = next((m for m in [7, 14, 21, 30, 60, 90] if m > streak), 90)
+        milestone_pct = min(streak / next_milestone, 1.0)
+
+        power_progress = card(ft.Column([
+            ft.Row([
+                body("Próximo power-up", size=13),
+                ft.Text(f"Día {next_milestone}", size=13, color=VILLAIN, weight=ft.FontWeight.W_600),
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.ProgressBar(value=milestone_pct, bgcolor=SURFACE, color=VILLAIN, height=6, border_radius=3),
+            muted(f"{next_milestone - streak} días restantes"),
+        ], spacing=6))
+
+        content_col.controls = [
+            ft.Container(height=4),
+            arc_card,
+            ft.Container(height=4),
+            power_progress,
+            ft.Container(height=4),
+            goals_col,
+            ft.Container(height=20),
+        ]
+
+    def _show_start_form():
+        title_f  = text_input("Nombre de tu Villain Arc", hint="Mi mejor era...")
+        quote_f  = text_input("Tu mantra personal", hint='"Messi no pidió permiso."')
+        goals_f  = text_input("Objetivos (uno por línea)", multiline=True,
+                               hint="Terminar el proyecto\nEntrenar 5 días/semana")
+
+        def _start(e):
+            if not title_f.value.strip():
+                snack(page, "Ponle nombre a tu era", RED)
+                return
+            goals = [g.strip() for g in (goals_f.value or "").split("\n") if g.strip()]
+            try:
+                api.start_villain_arc(
+                    title=title_f.value.strip(),
+                    quote=quote_f.value.strip() or None,
+                    goals=goals,
+                )
+                snack(page, "Villain Arc activado 😈  El mundo no está listo.")
+                load()
+            except APIError as ex:
+                snack(page, str(ex), RED)
+
+        content_col.controls = [
+            ft.Container(height=8),
+            ft.Column([
+                ft.Text("😈", size=64, text_align=ft.TextAlign.CENTER),
+                h1("Activa tu\nVillain Arc", size=28),
+                body("La era en que te enfocas en ti.\nSin disculpas. Solo resultados.", size=15, color=MUTED),
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
+            ft.Container(height=16),
+            card(ft.Column([
+                title_f,
+                ft.Container(height=6),
+                quote_f,
+                ft.Container(height=6),
+                goals_f,
+                ft.Container(height=12),
+                primary_btn("Activar Villain Arc 😈", on_click=_start, expand=True, color=VILLAIN),
+            ], spacing=4)),
+            ft.Container(height=20),
+        ]
+
+    load()
+
+    return ft.Container(
+        content=ft.Column([
+            ft.Container(
+                content=h1("Villain Arc 😈", size=22),
+                padding=ft.padding.only(top=16, bottom=8),
+            ),
+            content_col,
+        ], spacing=0, expand=True),
+        bgcolor=BG,
+        expand=True,
+        padding=ft.padding.symmetric(horizontal=16),
+    )
