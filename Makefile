@@ -22,9 +22,13 @@ android:
 ios:
 	GOAT_API_URL=$(RAILWAY_URL) flet build ipa --project "GOAT Arc" --org com.goatarc
 
-# Build as web app
+# Build as web app (static export)
 web:
 	GOAT_API_URL=$(RAILWAY_URL) flet build web --project "GOAT Arc"
+
+# Run web app locally (PWA preview)
+web-local:
+	GOAT_API_URL=$(RAILWAY_URL) python web_main.py
 
 # Seed the database with quests + World Cup matches
 seed:
