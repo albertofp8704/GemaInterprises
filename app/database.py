@@ -31,6 +31,7 @@ class User(Base):
     stripe_subscription_id = Column(String, nullable=True)
     subscription_status    = Column(String, default="inactive")    # active | inactive | canceled
     telegram_chat_id       = Column(String, nullable=True)
+    wallet_address         = Column(String, nullable=True, index=True)  # EVM address
     created_at             = Column(DateTime, default=datetime.utcnow)
     is_active              = Column(Boolean, default=True)
 
