@@ -80,9 +80,23 @@ claude plugin marketplace add anthropics/knowledge-work-plugins
 claude plugin install <name>@knowledge-work-plugins
 ```
 
-### Relevance to GemaInterprises
+### GemaInterprises Plugin (implemented)
 
-Could be used to:
-- Build a **Finance plugin** connecting to the Stripe/signal data
-- Add a **Sales/Support plugin** for user onboarding workflows
-- Create a custom **GemaInterprises plugin** with trading-signal slash commands and internal API connectors
+A custom plugin has been built at the root of this repo following the knowledge-work-plugins structure:
+
+```
+.claude-plugin/plugin.json    # manifest
+.mcp.json                     # gema-api + Stripe connectors
+skills/
+  signal-performance/SKILL.md # win rate, P&L, whale analysis
+  subscriber-health/SKILL.md  # plan distribution, churn, MRR
+  revenue-report/SKILL.md     # Stripe MRR/ARR, payment health
+  daily-briefing/SKILL.md     # morning/EOD operational summary
+commands/
+  signal-report.md            # /gema:signal-report
+  subscriber-stats.md         # /gema:subscriber-stats
+  revenue-report.md           # /gema:revenue-report
+  daily-briefing.md           # /gema:daily-briefing [quick|eod]
+```
+
+Skills are automatically used by Claude when relevant. Commands are invoked explicitly with `/gema:<command>`.

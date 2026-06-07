@@ -1,0 +1,8 @@
+{
+  "name": "gema-interprises",
+  "version": "1.0.0",
+  "description": "Crypto trading signal platform tools for GemaInterprises. Analyze signal performance, monitor subscriber health, review Stripe revenue, and generate daily briefings — all from Claude.",
+  "author": {
+    "name": "GemaInterprises"
+  }
+}
