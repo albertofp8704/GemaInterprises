@@ -358,13 +358,13 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
   const synth = window.speechSynthesis;
   let rec = null;
 
-  // Solo activar el mouse en las zonas visibles (personaje + panel)
-  // El resto del área transparente queda click-through
+  // Zonas visibles: activan el mouse al entrar
   const uiZones = [document.getElementById('char-zone'), document.getElementById('panel')];
 
   function checkLeave() {
     setTimeout(() => {
-      if (!uiZones.some(el => el.matches(':hover'))) {
+      // No desactivar si el panel está abierto (necesitamos capturar clic-fuera)
+      if (!chatOpen && !uiZones.some(el => el.matches(':hover'))) {
         window.gema.disableMouse();
       }
     }, 30);
@@ -373,6 +373,22 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
   uiZones.forEach(el => {
     el.addEventListener('mouseenter', () => window.gema.enableMouse());
     el.addEventListener('mouseleave', checkLeave);
+  });
+
+  // Clic fuera del panel → cerrar y volver click-through
+  document.addEventListener('mousedown', e => {
+    if (!chatOpen) return;
+    const panel = document.getElementById('panel');
+    const charZone = document.getElementById('char-zone');
+    if (!panel.contains(e.target) && !charZone.contains(e.target)) {
+      toggle(); // cierra el panel
+      // Si el mouse ya salió de las zonas UI, vuelve a transparente
+      setTimeout(() => {
+        if (!uiZones.some(el => el.matches(':hover'))) {
+          window.gema.disableMouse();
+        }
+      }, 50);
+    }
   });
 
   /* Drag */
@@ -401,11 +417,18 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
     chatOpen = !chatOpen;
     document.getElementById('panel').classList.toggle('off', !chatOpen);
     if (chatOpen) {
+      window.gema.enableMouse(); // captura toda la ventana para detectar clic-fuera
       if (!inited) { inited=true; addMsg('a', GREET); speak(GREET); }
       setTimeout(() => document.getElementById('ti').focus(), 130);
     } else {
       if (synth) synth.cancel();
       wave(false);
+      // Volver a click-through si el mouse no está sobre las zonas UI
+      setTimeout(() => {
+        if (!uiZones.some(el => el.matches(':hover'))) {
+          window.gema.disableMouse();
+        }
+      }, 80);
     }
   }
 
