@@ -1,0 +1,26 @@
+{
+  "name": "gema-desktop-agent",
+  "version": "1.0.0",
+  "description": "GEMA — Holographic Desktop AI Agent",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.gemainterprises.agent",
+    "productName": "GEMA Agent",
+    "directories": { "output": "dist" },
+    "win":   { "target": "nsis", "icon": "assets/icon.ico" },
+    "mac":   { "target": "dmg",  "icon": "assets/icon.icns" },
+    "linux": { "target": "AppImage", "icon": "assets/icon.png" }
+  },
+  "dependencies": {
+    "electron": "^30.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.0.0"
+  }
+}

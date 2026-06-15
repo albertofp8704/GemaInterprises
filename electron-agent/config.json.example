@@ -1,0 +1,10 @@
+{
+  "_comment": "Copia este archivo como config.json y rellena tus claves",
+
+  "anthropicApiKey":   "sk-ant-TU_CLAVE_AQUI",
+  "backendUrl":        "",
+
+  "_comment2":         "Para voz clonada de tu hija — ElevenLabs Instant Voice Clone",
+  "elevenLabsApiKey":  "",
+  "elevenLabsVoiceId": ""
+}
