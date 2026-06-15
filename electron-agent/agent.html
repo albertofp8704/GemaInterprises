@@ -72,6 +72,10 @@ html,body{
 .sb{background:rgba(60,140,255,.12);border-color:rgba(60,140,255,.32);color:#5ab4ff}
 .sb:hover{background:rgba(60,140,255,.24)}
 
+/* ── El área transparente NO captura eventos — solo las zonas visibles ── */
+#root{ pointer-events:none; }
+#panel, #char-zone, #quit{ pointer-events:auto; }
+
 /* ── Personaje ────────────────────────────────────────── */
 #char-zone{
   display:flex;flex-direction:column;
@@ -354,9 +358,22 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
   const synth = window.speechSynthesis;
   let rec = null;
 
-  const root = document.getElementById('root');
-  root.addEventListener('mouseenter', () => window.gema.enableMouse());
-  root.addEventListener('mouseleave', () => window.gema.disableMouse());
+  // Solo activar el mouse en las zonas visibles (personaje + panel)
+  // El resto del área transparente queda click-through
+  const uiZones = [document.getElementById('char-zone'), document.getElementById('panel')];
+
+  function checkLeave() {
+    setTimeout(() => {
+      if (!uiZones.some(el => el.matches(':hover'))) {
+        window.gema.disableMouse();
+      }
+    }, 30);
+  }
+
+  uiZones.forEach(el => {
+    el.addEventListener('mouseenter', () => window.gema.enableMouse());
+    el.addEventListener('mouseleave', checkLeave);
+  });
 
   /* Drag */
   let dragging=false, sm={}, sw={};
