@@ -29,11 +29,16 @@ function createWindow() {
   const cfg = loadConfig();
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
+  const defX = width  - 500;
+  const defY = height - 840;
+  const posX = (cfg.windowPosition?.x != null) ? cfg.windowPosition.x : defX;
+  const posY = (cfg.windowPosition?.y != null) ? cfg.windowPosition.y : defY;
+
   win = new BrowserWindow({
     width:  480,
     height: 820,
-    x: width  - 500,
-    y: height - 840,
+    x: posX,
+    y: posY,
     transparent:   true,
     frame:         false,
     alwaysOnTop:   true,
@@ -57,6 +62,17 @@ function createWindow() {
   }
 
   win.setIgnoreMouseEvents(true, { forward: true });
+
+  // Persist position on move (debounced 800ms)
+  let savePosTm;
+  win.on('moved', () => {
+    clearTimeout(savePosTm);
+    savePosTm = setTimeout(() => {
+      const [x, y] = win.getPosition();
+      const cur = loadConfig();
+      saveConfig({ ...cur, windowPosition: { x, y } });
+    }, 800);
+  });
 }
 
 app.whenReady().then(createWindow);
