@@ -341,11 +341,12 @@ html,body{
    APP PRINCIPAL
    ═══════════════════════════════════════════════════════ */
 (async () => {
-  const cfg      = await window.gema.getConfig();
-  const ANT_KEY  = cfg.anthropicApiKey   || '';
-  const XI_KEY   = cfg.elevenLabsApiKey  || '';
-  const XI_VOICE = cfg.elevenLabsVoiceId || '';
-  const BACKEND  = (cfg.backendUrl || '').replace(/\/$/, '');
+  const cfg       = await window.gema.getConfig();
+  const ANT_KEY   = cfg.anthropicApiKey    || '';
+  const XI_KEY    = cfg.elevenLabsApiKey   || '';
+  const XI_VOICE  = cfg.elevenLabsVoiceId  || '';
+  const XI_AGENT  = cfg.elevenLabsAgentId  || '';
+  const BACKEND   = (cfg.backendUrl || '').replace(/\/$/, '');
 
   const SYSTEM = `Eres GEMA, una asistente de IA holográfica y experta en trading de mercados de predicción BTC en Kalshi para Gema Interprises.
 Personalidad: futurista, directa, ligeramente misteriosa.
@@ -357,6 +358,137 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
   let chatOpen=false, inited=false, recOn=false, hist=[];
   const synth = window.speechSynthesis;
   let rec = null;
+
+  // ═══════════════════════════════════════════════════════
+  // MODO CONVERSACIONAL — ElevenLabs WebSocket
+  // Activo si XI_KEY + XI_AGENT están configurados
+  // ═══════════════════════════════════════════════════════
+  let convWs = null;
+  let micStream = null;
+  let micCtx = null;
+  let convActive = false;
+  let audioQueue = [];
+  let audioPlaying = false;
+
+  async function startConvAI() {
+    if (convActive) { stopConvAI(); return; }
+    try {
+      // Obtener URL firmada (no expone la API key en la URL)
+      const res = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${XI_AGENT}`,
+        { headers: { 'xi-api-key': XI_KEY } }
+      );
+      if (!res.ok) throw new Error('No se pudo conectar al agente');
+      const { signed_url } = await res.json();
+
+      convWs = new WebSocket(signed_url);
+      const playCtx = new AudioContext();
+      audioQueue = []; audioPlaying = false;
+
+      convWs.onopen = async () => {
+        convActive = true;
+        updateMicBtn(true);
+        addMsg('a', '🎙 Conexión de voz activa — habla cuando quieras');
+
+        // Anular prompt/voz del agente en ElevenLabs con nuestra config
+        const initMsg = {
+          type: 'conversation_initiation_client_data',
+          conversation_config_override: {
+            agent: { prompt: { prompt: SYSTEM }, language: 'es' }
+          }
+        };
+        if (XI_VOICE) initMsg.conversation_config_override.tts = { voice_id: XI_VOICE };
+        convWs.send(JSON.stringify(initMsg));
+
+        // Iniciar captura de micro (PCM16 @ 16kHz → base64)
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+        });
+        micCtx = new AudioContext({ sampleRate: 16000 });
+        const src = micCtx.createMediaStreamSource(micStream);
+        const proc = micCtx.createScriptProcessor(2048, 1, 1);
+        proc.onaudioprocess = e => {
+          if (convWs?.readyState !== WebSocket.OPEN) return;
+          const f32 = e.inputBuffer.getChannelData(0);
+          const i16 = new Int16Array(f32.length);
+          for (let i = 0; i < f32.length; i++)
+            i16[i] = Math.max(-32768, Math.min(32767, f32[i] * 32768));
+          let bin = '';
+          new Uint8Array(i16.buffer).forEach(b => bin += String.fromCharCode(b));
+          convWs.send(JSON.stringify({ user_audio_chunk: btoa(bin) }));
+        };
+        src.connect(proc);
+        proc.connect(micCtx.destination);
+      };
+
+      convWs.onmessage = async ev => {
+        const msg = JSON.parse(ev.data);
+        switch (msg.type) {
+          case 'audio': {
+            // Decodificar y encolar chunk de audio MP3
+            const b64 = msg.audio_event.audio_base_64;
+            const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            playCtx.decodeAudioData(bytes.buffer.slice(0)).then(buf => {
+              audioQueue.push(buf);
+              drainAudio(playCtx);
+            }).catch(() => {});
+            break;
+          }
+          case 'agent_response':
+            addMsg('a', msg.agent_response_event.agent_response);
+            wave(true);
+            break;
+          case 'user_transcript':
+            addMsg('u', msg.user_transcription_event.user_transcript);
+            break;
+          case 'interruption':
+            audioQueue = [];
+            wave(false);
+            break;
+          case 'ping':
+            convWs.send(JSON.stringify({ type: 'pong', event_id: msg.ping_event.event_id }));
+            break;
+        }
+      };
+
+      convWs.onclose = () => { convActive = false; updateMicBtn(false); wave(false); audioQueue = []; };
+      convWs.onerror = () => { addMsg('a', '⚠ Error en la conexión de voz.'); stopConvAI(); };
+
+    } catch(err) {
+      addMsg('a', `⚠ ${err.message}`);
+    }
+  }
+
+  function drainAudio(ctx) {
+    if (audioPlaying || audioQueue.length === 0) return;
+    audioPlaying = true;
+    const buf = audioQueue.shift();
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.onended = () => { audioPlaying = false; if(audioQueue.length) drainAudio(ctx); else wave(false); };
+    src.start();
+  }
+
+  function stopConvAI() {
+    convWs?.close();
+    micStream?.getTracks().forEach(t => t.stop());
+    micCtx?.close();
+    convWs = null; micStream = null; micCtx = null;
+    convActive = false; audioQueue = [];
+    updateMicBtn(false); wave(false);
+  }
+
+  function updateMicBtn(active) {
+    const b = document.getElementById('mic');
+    if (active) {
+      b.classList.add('on'); b.textContent = '⏹';
+      b.title = 'Detener conversación de voz';
+    } else {
+      b.classList.remove('on'); b.textContent = '🎤';
+      b.title = 'Iniciar conversación de voz';
+    }
+  }
 
   // Zonas visibles: activan el mouse al entrar
   const uiZones = [document.getElementById('char-zone'), document.getElementById('panel')];
@@ -505,7 +637,14 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
     synth.speak(u);
   }
 
+  // Micrófono: modo ConvAI (voz tiempo real) o modo STT clásico
   document.getElementById('mic').addEventListener('click', () => {
+    if (XI_KEY && XI_AGENT) {
+      // ── Modo ElevenLabs Conversational AI ──
+      startConvAI();
+      return;
+    }
+    // ── Modo STT clásico (SpeechRecognition + Anthropic) ──
     if (!rec) {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SR) { addMsg('a','⚠ Voz no disponible en este sistema.'); return; }
@@ -516,6 +655,11 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
     if (recOn) { rec.stop(); }
     else { if(synth)synth.cancel(); rec.start(); recOn=true; const b=document.getElementById('mic'); b.classList.add('on'); b.textContent='⏹'; }
   });
+
+  // Indicar modo al abrir panel por primera vez
+  if (XI_KEY && XI_AGENT) {
+    document.getElementById('mic').title = 'Iniciar conversación de voz con GEMA';
+  }
 
   document.getElementById('quit').addEventListener('click', () => window.gema.quit());
   if(synth){synth.getVoices();synth.addEventListener('voiceschanged',()=>synth.getVoices());}

@@ -94,9 +94,14 @@ button:disabled{opacity:.4;cursor:default}
       (Registro gratuito → API Keys → Create Key)
     </div>
 
-    <label for="xi-key">Voz personalizada — ElevenLabs (opcional)</label>
-    <input id="xi-key" type="password" placeholder="Clave ElevenLabs (opcional)" autocomplete="off"/>
+    <label for="xi-key">ElevenLabs — Voz + Agente conversacional (opcional)</label>
+    <input id="xi-key" type="password" placeholder="API Key de ElevenLabs (opcional)" autocomplete="off"/>
     <input id="xi-voice" type="text" placeholder="Voice ID de la voz clonada (opcional)" autocomplete="off"/>
+    <input id="xi-agent" type="text" placeholder="Agent ID conversacional (opcional)" autocomplete="off"/>
+    <div class="hint" style="margin-top:-8px">
+      Agent ID: elevenlabs.io → Conversational AI → tu agente → Settings → Agent ID<br/>
+      Con Agent ID activo: GEMA responde en tiempo real por voz (sin texto)
+    </div>
 
     <button id="save-btn" onclick="save()">✨ Activar GEMA</button>
     <div id="err"></div>
@@ -111,8 +116,9 @@ document.getElementById('root').addEventListener('mouseleave', () => window.gema
 
 async function save() {
   const key = document.getElementById('key-input').value.trim();
-  const xiKey = document.getElementById('xi-key').value.trim();
+  const xiKey   = document.getElementById('xi-key').value.trim();
   const xiVoice = document.getElementById('xi-voice').value.trim();
+  const xiAgent = document.getElementById('xi-agent').value.trim();
   const btn = document.getElementById('save-btn');
   const err = document.getElementById('err');
 
@@ -133,7 +139,7 @@ async function save() {
       body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] })
     });
     if (!r.ok) throw new Error('Invalid key');
-    window.gema.saveConfig({ anthropicApiKey: key, elevenLabsApiKey: xiKey, elevenLabsVoiceId: xiVoice });
+    window.gema.saveConfig({ anthropicApiKey: key, elevenLabsApiKey: xiKey, elevenLabsVoiceId: xiVoice, elevenLabsAgentId: xiAgent });
   } catch(e) {
     err.textContent = '⚠ Clave inválida. Comprueba que la copiaste bien.';
     btn.disabled = false;
