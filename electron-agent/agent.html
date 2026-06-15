@@ -43,17 +43,15 @@ html,body{
   opacity:0;pointer-events:none;
   max-height:0;margin-bottom:0;overflow:hidden;
 }
-
 .ph{padding:13px 15px;background:rgba(40,100,255,.06);border-bottom:1px solid rgba(60,140,255,.12);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .ph-l{display:flex;align-items:center;gap:10px}
-.ph-av{width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,rgba(80,160,255,.25),rgba(0,20,80,.5));border:1.5px solid rgba(80,160,255,.65);display:flex;align-items:center;justify-content:center;font-size:16px;animation:avG 3s ease-in-out infinite;overflow:hidden}
-.ph-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 6px rgba(80,160,255,.8))}
+.ph-av{width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,rgba(80,160,255,.25),rgba(0,20,80,.5));border:1.5px solid rgba(80,160,255,.65);display:flex;align-items:center;justify-content:center;overflow:hidden;animation:avG 3s ease-in-out infinite}
+.ph-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 @keyframes avG{0%,100%{box-shadow:0 0 12px rgba(80,160,255,.45)}50%{box-shadow:0 0 24px rgba(80,160,255,.75)}}
 .ph-name{font-size:13px;font-weight:700;color:#E8EDF5;letter-spacing:.4px}
 .ph-st{font-size:10px;color:#5ab4ff;letter-spacing:.3px}
 .ph-close{width:26px;height:26px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:#556070;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .2s}
 .ph-close:hover{background:rgba(255,255,255,.1);color:#E8EDF5}
-
 .msgs{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin;scrollbar-color:rgba(80,160,255,.2) transparent}
 .m{max-width:87%;padding:9px 12px;border-radius:13px;font-size:12.5px;line-height:1.55;animation:mIn .28s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes mIn{from{opacity:0;transform:translateY(7px) scale(.93)}to{opacity:1;transform:none}}
@@ -63,7 +61,6 @@ html,body{
 .d{width:6px;height:6px;background:rgba(80,160,255,.5);border-radius:50%;animation:db 1.2s ease-in-out infinite}
 .d:nth-child(2){animation-delay:.17s}.d:nth-child(3){animation-delay:.34s}
 @keyframes db{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-7px);opacity:1}}
-
 .ir{display:flex;align-items:center;gap:7px;padding:11px 11px;border-top:1px solid rgba(255,255,255,.055);flex-shrink:0}
 #ti{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:8px 11px;color:#E8EDF5;font-size:12.5px;font-family:inherit;outline:none;transition:border-color .2s}
 #ti:focus{border-color:rgba(80,160,255,.45)}
@@ -87,45 +84,45 @@ html,body{
   width:220px;height:360px;
   position:relative;
   cursor:grab;
-  animation:fl 3.8s ease-in-out infinite, gl 16s steps(1) infinite;
+  animation:fl 3.8s ease-in-out infinite;
 }
 #cw:active{cursor:grabbing;}
 
 @keyframes fl{
   0%,100%{transform:translateY(0) rotate(-.4deg)}
-  25%{transform:translateY(-16px) rotate(.6deg)}
+  25%{transform:translateY(-16px) rotate(.5deg)}
   75%{transform:translateY(-8px) rotate(-.3deg)}
 }
 
-@keyframes gl{
-  0%,90%,100%{}
-  91%{filter:drop-shadow(6px 0 rgba(255,0,100,.9)) drop-shadow(-6px 0 rgba(0,210,255,.9));transform:translateX(6px) translateY(-20px) scaleX(1.04)}
-  92%{filter:drop-shadow(-6px 0 rgba(255,0,100,.9)) drop-shadow(6px 0 rgba(0,210,255,.9));transform:translateX(-4px) translateY(-18px)}
-  93%{transform:translateY(-19px)}
-}
-
-#char-img{
-  width:100%;height:100%;
-  object-fit:contain;
+/* Canvas principal del personaje */
+#char-canvas{
+  width:220px;height:360px;
+  display:block;
   filter:drop-shadow(0 0 18px rgba(80,160,255,.75))
          drop-shadow(0 0 36px rgba(40,100,255,.55))
          drop-shadow(0 0 60px rgba(0,60,255,.35));
-  animation:imgGlow 2.8s ease-in-out infinite;
-  transition:filter .3s;
+  animation:glowPulse 2.8s ease-in-out infinite;
 }
-
-@keyframes imgGlow{
+@keyframes glowPulse{
   0%,100%{filter:drop-shadow(0 0 18px rgba(80,160,255,.7)) drop-shadow(0 0 36px rgba(40,100,255,.5)) drop-shadow(0 0 60px rgba(0,60,255,.3))}
   50%{filter:drop-shadow(0 0 26px rgba(80,160,255,.95)) drop-shadow(0 0 52px rgba(40,100,255,.75)) drop-shadow(0 0 85px rgba(0,60,255,.5))}
 }
-
-#cw.talking #char-img{
-  filter:drop-shadow(0 0 30px rgba(80,200,255,1)) drop-shadow(0 0 60px rgba(40,150,255,.85)) drop-shadow(0 0 100px rgba(0,100,255,.6))!important;
-  animation:talkGlow .5s ease-in-out infinite alternate;
+#char-canvas.talking{
+  animation:talkGlow .5s ease-in-out infinite alternate!important;
 }
 @keyframes talkGlow{
   from{filter:drop-shadow(0 0 28px rgba(80,200,255,.9)) drop-shadow(0 0 55px rgba(40,150,255,.8)) drop-shadow(0 0 90px rgba(0,100,255,.55))}
   to{filter:drop-shadow(0 0 40px rgba(80,210,255,1)) drop-shadow(0 0 75px rgba(40,160,255,.9)) drop-shadow(0 0 120px rgba(0,120,255,.65))}
+}
+
+/* Glitch ocasional */
+#cw.glitch{animation:fl 3.8s ease-in-out infinite,gl .4s steps(1) 1}
+@keyframes gl{
+  0%{filter:none}
+  20%{filter:drop-shadow(5px 0 rgba(255,0,100,.9)) drop-shadow(-5px 0 rgba(0,210,255,.9));transform:translateX(5px) translateY(-18px)}
+  40%{filter:drop-shadow(-5px 0 rgba(255,0,100,.9));transform:translateX(-4px) translateY(-19px)}
+  60%{filter:none;transform:translateY(-17px)}
+  100%{filter:none}
 }
 
 /* Botón cerrar */
@@ -145,7 +142,6 @@ html,body{
 <body>
 
 <div id="root">
-  <!-- Panel de chat -->
   <div id="panel" class="off">
     <div class="ph">
       <div class="ph-l">
@@ -165,10 +161,9 @@ html,body{
     </div>
   </div>
 
-  <!-- Personaje -->
   <div id="char-zone">
     <div id="cw">
-      <img id="char-img" src="assets/gema_char.png" alt="GEMA" draggable="false"/>
+      <canvas id="char-canvas" width="220" height="360"></canvas>
     </div>
   </div>
 </div>
@@ -176,6 +171,183 @@ html,body{
 <button id="quit" title="Cerrar">✕</button>
 
 <script>
+/* ═══════════════════════════════════════════════════════
+   ANIMACIÓN DEL PERSONAJE — canvas con capas independientes
+   ═══════════════════════════════════════════════════════ */
+(function initCharAnim() {
+  const canvas = document.getElementById('char-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 220, H = 360;
+
+  const img = new Image();
+  img.src = 'assets/gema_char.png';
+
+  // ── Zonas del cuerpo (porcentajes del canvas 220x360) ──
+  // Ajusta estos valores si el personaje está descentrado
+  const Z = {
+    hair:  { y: 0,   h: 105 },           // pelo (top)
+    eyeL:  { x: 78,  y: 82,  r: 10 },   // ojo izquierdo
+    eyeR:  { x: 138, y: 82,  r: 10 },   // ojo derecho
+    armL:  { x: 0,   y: 165, w: 80,  h: 110 }, // brazo izq
+    armR:  { x: 140, y: 165, w: 80,  h: 110 }, // brazo der
+  };
+
+  // ── Estado de animación ──
+  let t = 0;
+  let blinkState = 0;   // 0=abierto, 1=cerrando, 2=abriendo
+  let blinkOpen = 1.0;  // 1=abierto, 0=cerrado
+  let nextBlink = 2.5 + Math.random() * 2;
+  let pupX = 0, pupY = 0;   // posición actual del pupil
+  let pupTX = 0, pupTY = 0; // target
+  let nextPupMove = 1.5 + Math.random() * 2;
+  let talkMod = 0;      // 0=normal, 1=hablando
+
+  // ── Dibuja una región clipeada con transformación ──
+  function drawRegion(clipX, clipY, clipW, clipH, pivotX, pivotY, angle, offsetX = 0, offsetY = 0) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(clipX, clipY, clipW, clipH);
+    ctx.clip();
+    ctx.translate(pivotX, pivotY);
+    ctx.rotate(angle);
+    ctx.drawImage(img, offsetX - pivotX, offsetY - pivotY, W, H);
+    ctx.restore();
+  }
+
+  // ── Borra una región (destination-out) ──
+  function eraseRegion(x, y, w, h) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
+  }
+
+  // ── Dibuja los ojos animados ──
+  function drawEyes() {
+    [Z.eyeL, Z.eyeR].forEach(eye => {
+      const cx = eye.x + pupX;
+      const cy = eye.y + pupY;
+      const openH = blinkOpen; // 1=open, 0=closed (vertical scale)
+
+      ctx.save();
+      ctx.translate(eye.x, eye.y);
+      ctx.scale(1, openH);
+
+      // Iris con gradiente
+      const grad = ctx.createRadialGradient(pupX, pupY, 0, pupX, pupY, eye.r);
+      grad.addColorStop(0,   'rgba(120,220,255,0.95)');
+      grad.addColorStop(0.3, 'rgba(60,160,255,0.85)');
+      grad.addColorStop(0.7, 'rgba(20,80,220,0.7)');
+      grad.addColorStop(1,   'rgba(0,40,160,0.2)');
+      ctx.beginPath();
+      ctx.arc(pupX, pupY, eye.r, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Pupila
+      ctx.beginPath();
+      ctx.arc(pupX * 0.6, pupY * 0.6, eye.r * 0.38, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,10,50,0.9)';
+      ctx.fill();
+
+      // Reflejo
+      ctx.beginPath();
+      ctx.arc(pupX * 0.5 - eye.r * 0.28, pupY * 0.5 - eye.r * 0.32, eye.r * 0.18, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.fill();
+
+      ctx.restore();
+    });
+  }
+
+  // ── Frame loop ──
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    t += 1 / 60;
+
+    // ── PARPADEO ──
+    if (blinkState === 0 && t > nextBlink) {
+      blinkState = 1; // empieza a cerrar
+    }
+    if (blinkState === 1) {
+      blinkOpen = Math.max(0, blinkOpen - 0.18);
+      if (blinkOpen <= 0) blinkState = 2;
+    } else if (blinkState === 2) {
+      blinkOpen = Math.min(1, blinkOpen + 0.14);
+      if (blinkOpen >= 1) {
+        blinkState = 0;
+        nextBlink = t + 2.5 + Math.random() * 3.5;
+      }
+    }
+
+    // ── MOVIMIENTO DE PUPILAS ──
+    if (t > nextPupMove) {
+      pupTX = (Math.random() - 0.5) * 5;
+      pupTY = (Math.random() - 0.5) * 2.5;
+      nextPupMove = t + 1.2 + Math.random() * 2.8;
+    }
+    pupX += (pupTX - pupX) * 0.04;
+    pupY += (pupTY - pupY) * 0.04;
+
+    // ── ÁNGULOS DE ANIMACIÓN ──
+    // Pelo: balanceo suave compuesto de dos frecuencias
+    const hairAngle = Math.sin(t * 1.3) * 0.022 + Math.sin(t * 2.1) * 0.008;
+
+    // Brazo izquierdo: sube y baja, rotación desde el hombro
+    const armLAngle = Math.sin(t * 1.5) * 0.09 + (talkMod * Math.sin(t * 4) * 0.04);
+
+    // Brazo derecho: ligeramente desfasado y opuesto
+    const armRAngle = Math.sin(t * 1.5 + 1.2) * 0.08 + (talkMod * Math.sin(t * 4 + 1) * 0.035);
+
+    // ── DIBUJAR PERSONAJE ──
+
+    // 1. Cuerpo completo (base estática)
+    ctx.drawImage(img, 0, 0, W, H);
+
+    // 2. PELO animado encima
+    eraseRegion(0, Z.hair.y, W, Z.hair.h);
+    drawRegion(0, Z.hair.y, W, Z.hair.h,
+               W / 2, Z.hair.y + Z.hair.h,  // pivote: centro-abajo del pelo
+               hairAngle);
+
+    // 3. BRAZO IZQUIERDO animado encima
+    eraseRegion(Z.armL.x, Z.armL.y, Z.armL.w, Z.armL.h);
+    drawRegion(Z.armL.x, Z.armL.y, Z.armL.w, Z.armL.h,
+               Z.armL.x + Z.armL.w,          // pivote: hombro (borde derecho)
+               Z.armL.y,
+               armLAngle);
+
+    // 4. BRAZO DERECHO animado encima
+    eraseRegion(Z.armR.x, Z.armR.y, Z.armR.w, Z.armR.h);
+    drawRegion(Z.armR.x, Z.armR.y, Z.armR.w, Z.armR.h,
+               Z.armR.x,                     // pivote: hombro (borde izquierdo)
+               Z.armR.y,
+               armRAngle);
+
+    // 5. OJOS encima de todo
+    drawEyes();
+
+    requestAnimationFrame(frame);
+  }
+
+  img.onload = () => requestAnimationFrame(frame);
+
+  // Exponer control de "hablando" para el resto del app
+  window._gemaTalkAnim = (on) => { talkMod = on ? 1 : 0; };
+
+  // Glitch aleatorio
+  setInterval(() => {
+    const cw = document.getElementById('cw');
+    if (!cw) return;
+    cw.classList.add('glitch');
+    setTimeout(() => cw.classList.remove('glitch'), 400);
+  }, 12000 + Math.random() * 8000);
+})();
+
+
+/* ═══════════════════════════════════════════════════════
+   APP PRINCIPAL
+   ═══════════════════════════════════════════════════════ */
 (async () => {
   const cfg      = await window.gema.getConfig();
   const ANT_KEY  = cfg.anthropicApiKey   || '';
@@ -194,7 +366,6 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
   const synth = window.speechSynthesis;
   let rec = null;
 
-  /* Mouse pass-through */
   const root = document.getElementById('root');
   root.addEventListener('mouseenter', () => window.gema.enableMouse());
   root.addEventListener('mouseleave', () => window.gema.disableMouse());
@@ -233,7 +404,6 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
     }
   }
 
-  /* Enviar mensaje */
   async function send() {
     const el = document.getElementById('ti');
     const txt = el.value.trim(); if (!txt) return;
@@ -264,7 +434,6 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
   document.getElementById('snd').addEventListener('click', send);
   document.getElementById('ti').addEventListener('keydown', e => { if(e.key==='Enter') send(); });
 
-  /* Helpers */
   function addMsg(cls, txt) {
     const c = document.getElementById('msgs');
     const d = document.createElement('div'); d.className='m '+cls; d.textContent=txt;
@@ -277,10 +446,10 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
     c.appendChild(d); c.scrollTop=c.scrollHeight; return d;
   }
   function wave(on) {
-    document.getElementById('cw').classList.toggle('talking', on);
+    document.getElementById('char-canvas').classList.toggle('talking', on);
+    if (window._gemaTalkAnim) window._gemaTalkAnim(on);
   }
 
-  /* Voz */
   async function speak(text) {
     if (XI_KEY && XI_VOICE) {
       try {
@@ -308,7 +477,6 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
     synth.speak(u);
   }
 
-  /* Micrófono */
   document.getElementById('mic').addEventListener('click', () => {
     if (!rec) {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -322,7 +490,6 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
   });
 
   document.getElementById('quit').addEventListener('click', () => window.gema.quit());
-
   if(synth){synth.getVoices();synth.addEventListener('voiceschanged',()=>synth.getVoices());}
 })();
 </script>
