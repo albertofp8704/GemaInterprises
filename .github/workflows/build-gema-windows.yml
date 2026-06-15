@@ -1,0 +1,68 @@
+name: Build GEMA Agent for Windows
+
+on:
+  push:
+    branches:
+      - claude/foreground-window-agent-1r6vpo
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: electron-agent
+        run: npm install
+
+      - name: Build Windows portable exe
+        working-directory: electron-agent
+        env:
+          CSC_LINK: ""
+          CSC_KEY_PASSWORD: ""
+          WIN_CSC_LINK: ""
+        run: npx electron-builder --win portable --x64 --publish never
+
+      - name: Upload EXE as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GEMA-Agent-Windows
+          path: electron-agent/dist/*.exe
+          retention-days: 30
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-build
+          name: "GEMA Agent — Descarga Directa"
+          draft: false
+          prerelease: false
+          make_latest: true
+          files: electron-agent/dist/*.exe
+          body: |
+            ## 👾 GEMA — Agente Holográfico de Trading
+
+            ### Instrucciones (solo 3 pasos):
+            1. **Descarga** el archivo `GEMA Agent.exe` de abajo
+            2. **Doble clic** para abrirlo
+            3. Introduce tu clave de Anthropic cuando te la pida
+
+            ### Obtener clave Anthropic (gratis):
+            1. Ve a **console.anthropic.com**
+            2. Regístrate o inicia sesión
+            3. API Keys → Create Key
+            4. Copia la clave (empieza por `sk-ant-`)
+
+            ---
+            *La primera vez que abras GEMA te pedirá la clave. Solo una vez.*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

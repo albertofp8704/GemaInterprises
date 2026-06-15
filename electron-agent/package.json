@@ -5,22 +5,30 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "build:win": "electron-builder --win --x64"
   },
   "build": {
     "appId": "com.gemainterprises.agent",
     "productName": "GEMA Agent",
     "directories": { "output": "dist" },
-    "win":   { "target": "nsis", "icon": "assets/icon.ico" },
-    "mac":   { "target": "dmg",  "icon": "assets/icon.icns" },
-    "linux": { "target": "AppImage", "icon": "assets/icon.png" }
+    "files": [
+      "main.js",
+      "preload.js",
+      "agent.html",
+      "setup.html",
+      "assets/**"
+    ],
+    "win": {
+      "target": [{ "target": "portable", "arch": ["x64"] }]
+    },
+    "portable": {
+      "splashImage": false
+    }
   },
-  "dependencies": {
-    "electron": "^30.0.0"
-  },
+  "author": "Gema Interprises",
+  "dependencies": {},
   "devDependencies": {
-    "electron-builder": "^24.0.0"
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
   }
 }

@@ -4,10 +4,25 @@ const fs   = require('fs');
 
 let win;
 
+// Config lives in %APPDATA%\GEMA Agent\config.json  (no manual file needed)
+function configPath() {
+  return path.join(app.getPath('userData'), 'config.json');
+}
+
 function loadConfig() {
-  const p = path.join(__dirname, 'config.json');
-  try { return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : {}; }
-  catch(e) { return {}; }
+  try {
+    const p = configPath();
+    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch(e) {}
+  return {};
+}
+
+function saveConfig(data) {
+  try {
+    const p = configPath();
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, JSON.stringify(data, null, 2));
+  } catch(e) {}
 }
 
 function createWindow() {
@@ -24,7 +39,7 @@ function createWindow() {
     alwaysOnTop:   true,
     skipTaskbar:   false,
     resizable:     false,
-    movable:       false,   // drag handled via IPC
+    movable:       false,
     hasShadow:     false,
     backgroundColor: '#00000000',
     webPreferences: {
@@ -34,35 +49,28 @@ function createWindow() {
     }
   });
 
-  win.loadFile('agent.html');
+  // If no API key configured → show setup screen
+  if (!cfg.anthropicApiKey) {
+    win.loadFile('setup.html');
+  } else {
+    win.loadFile('agent.html');
+  }
 
-  // Transparent areas pass mouse events through to OS
   win.setIgnoreMouseEvents(true, { forward: true });
-
-  // Dev tools (uncomment to debug)
-  // win.webContents.openDevTools({ mode: 'detach' });
 }
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => app.quit());
 
 // ── IPC ──────────────────────────────────────────────────────────
-
-// Hover over an element — restore mouse events
-ipcMain.on('mouse-enable',  () => win.setIgnoreMouseEvents(false));
-// Leave all elements — pass-through again
-ipcMain.on('mouse-disable', () => win.setIgnoreMouseEvents(true, { forward: true }));
-
-// Drag the window by moving it manually
-ipcMain.on('drag-window', (_, { x, y }) => {
-  win.setPosition(Math.round(x), Math.round(y));
+ipcMain.on('mouse-enable',  () => win && win.setIgnoreMouseEvents(false));
+ipcMain.on('mouse-disable', () => win && win.setIgnoreMouseEvents(true, { forward: true }));
+ipcMain.on('drag-window',   (_, { x, y }) => win && win.setPosition(Math.round(x), Math.round(y)));
+ipcMain.handle('get-win-pos', () => win ? win.getPosition() : [0, 0]);
+ipcMain.handle('get-config',  () => loadConfig());
+ipcMain.on('save-config', (_, data) => {
+  saveConfig(data);
+  // Reload main agent after saving
+  win.loadFile('agent.html');
 });
-
-// Renderer asks where the window is (for drag offset)
-ipcMain.handle('get-win-pos', () => win.getPosition());
-
-// Config (API keys live on disk, never hard-coded)
-ipcMain.handle('get-config', () => loadConfig());
-
-// Close
 ipcMain.on('quit-app', () => app.quit());
