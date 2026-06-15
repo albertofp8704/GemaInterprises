@@ -65,7 +65,12 @@ app.on('window-all-closed', () => app.quit());
 // ── IPC ──────────────────────────────────────────────────────────
 ipcMain.on('mouse-enable',  () => win && win.setIgnoreMouseEvents(false));
 ipcMain.on('mouse-disable', () => win && win.setIgnoreMouseEvents(true, { forward: true }));
-ipcMain.on('drag-window',   (_, { x, y }) => win && win.setPosition(Math.round(x), Math.round(y)));
+ipcMain.on('drag-window', (_, pos) => {
+  if (!win || !pos) return;
+  const x = Math.round(Number(pos.x));
+  const y = Math.round(Number(pos.y));
+  if (Number.isFinite(x) && Number.isFinite(y)) win.setPosition(x, y);
+});
 ipcMain.handle('get-win-pos', () => win ? win.getPosition() : [0, 0]);
 ipcMain.handle('get-config',  () => loadConfig());
 ipcMain.on('save-config', (_, data) => {
