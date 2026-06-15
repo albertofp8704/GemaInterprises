@@ -27,9 +27,7 @@ jobs:
       - name: Build Windows portable exe
         working-directory: electron-agent
         env:
-          CSC_LINK: ""
-          CSC_KEY_PASSWORD: ""
-          WIN_CSC_LINK: ""
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: npx electron-builder --win portable --x64 --publish never
 
       - name: Upload EXE as artifact
