@@ -14,21 +14,12 @@ html,body{
   -webkit-user-select:none;user-select:none;
 }
 
-/* ── Layout raíz ──────────────────────────────────────── */
 #root{
   width:480px;height:820px;
   display:flex;flex-direction:column;
   align-items:center;justify-content:flex-end;
   padding-bottom:10px;
   position:relative;
-}
-
-/* ── Partículas de fondo ──────────────────────────────── */
-#particles{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
 }
 
 /* ── Panel de chat ────────────────────────────────────── */
@@ -84,29 +75,14 @@ html,body{
 .sb{background:rgba(60,140,255,.12);border-color:rgba(60,140,255,.32);color:#5ab4ff}
 .sb:hover{background:rgba(60,140,255,.24)}
 
-/* ── Zona del personaje ───────────────────────────────── */
+/* ── Personaje ────────────────────────────────────────── */
 #char-zone{
   display:flex;flex-direction:column;
-  align-items:center;gap:6px;
+  align-items:center;
   cursor:pointer;
   position:relative;z-index:10;
 }
 
-/* Burbuja de saludo */
-#bub{
-  background:rgba(2,4,18,.97);
-  border:1px solid rgba(80,160,255,.45);
-  border-radius:16px;
-  padding:9px 16px;
-  font-size:12px;color:#C4D8FF;
-  white-space:nowrap;
-  box-shadow:0 0 22px rgba(60,140,255,.2);
-  animation:bp .5s cubic-bezier(.34,1.56,.64,1) both;
-  transition:opacity .4s;pointer-events:none;
-}
-@keyframes bp{from{opacity:0;transform:scale(.78)}to{opacity:1;transform:scale(1)}}
-
-/* Contenedor del personaje */
 #cw{
   width:220px;height:360px;
   position:relative;
@@ -128,7 +104,6 @@ html,body{
   93%{transform:translateY(-19px)}
 }
 
-/* Imagen del personaje */
 #char-img{
   width:100%;height:100%;
   object-fit:contain;
@@ -153,40 +128,6 @@ html,body{
   to{filter:drop-shadow(0 0 40px rgba(80,210,255,1)) drop-shadow(0 0 75px rgba(40,160,255,.9)) drop-shadow(0 0 120px rgba(0,120,255,.65))}
 }
 
-/* Scanlines holográficas */
-#cw::after{
-  content:'';
-  position:absolute;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(60,140,255,.025) 3px,rgba(60,140,255,.025) 4px);
-  pointer-events:none;
-  animation:scanMove 6s linear infinite;
-}
-@keyframes scanMove{from{background-position:0 0}to{background-position:0 80px}}
-
-/* Base de proyección (holograma) */
-#holo-base{
-  width:160px;height:12px;
-  background:radial-gradient(ellipse,rgba(60,160,255,.55) 0%,transparent 72%);
-  margin-top:-8px;
-  animation:baseG 2.8s ease-in-out infinite;
-  filter:blur(4px);
-}
-@keyframes baseG{0%,100%{opacity:.5;transform:scaleX(1)}50%{opacity:.95;transform:scaleX(1.12)}}
-
-/* Barras de onda */
-#wv{display:flex;gap:3px;align-items:center;height:16px;opacity:0;transition:opacity .3s;margin-top:2px}
-#wv.on{opacity:1}
-.wb{width:3px;background:#5ab4ff;border-radius:2px;animation:wba .72s ease-in-out infinite}
-.wb:nth-child(1){height:4px;animation-delay:0s}
-.wb:nth-child(2){height:12px;animation-delay:.1s}
-.wb:nth-child(3){height:16px;animation-delay:.2s}
-.wb:nth-child(4){height:12px;animation-delay:.3s}
-.wb:nth-child(5){height:4px;animation-delay:.4s}
-@keyframes wba{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}
-
-/* Label */
-#lbl{font-size:9px;font-weight:700;letter-spacing:2.8px;color:rgba(90,180,255,.6);text-transform:uppercase;text-shadow:0 0 10px rgba(60,140,255,.6)}
-
 /* Botón cerrar */
 #quit{
   position:fixed;top:6px;right:6px;
@@ -202,7 +143,6 @@ html,body{
 </style>
 </head>
 <body>
-<canvas id="particles"></canvas>
 
 <div id="root">
   <!-- Panel de chat -->
@@ -227,60 +167,15 @@ html,body{
 
   <!-- Personaje -->
   <div id="char-zone">
-    <div id="bub">✨ GEMA online — Haz clic para hablar</div>
     <div id="cw">
       <img id="char-img" src="assets/gema_char.png" alt="GEMA" draggable="false"/>
     </div>
-    <div id="holo-base"></div>
-    <div id="wv">
-      <div class="wb"></div><div class="wb"></div><div class="wb"></div>
-      <div class="wb"></div><div class="wb"></div>
-    </div>
-    <div id="lbl">GEMA AI</div>
   </div>
 </div>
 
 <button id="quit" title="Cerrar">✕</button>
 
 <script>
-/* ── Partículas ────────────────────────────────────────── */
-(function initParticles(){
-  const cv = document.getElementById('particles');
-  cv.width  = 480;
-  cv.height = 820;
-  const cx = cv.getContext('2d');
-  const ps = [];
-  for (let i = 0; i < 55; i++) {
-    ps.push({
-      x: Math.random() * 480,
-      y: Math.random() * 820,
-      r: Math.random() * 2.5 + 0.5,
-      vy: -(Math.random() * 0.8 + 0.3),
-      vx: (Math.random() - .5) * 0.4,
-      a:  Math.random(),
-      da: (Math.random() * 0.008 + 0.003) * (Math.random() < .5 ? 1 : -1),
-    });
-  }
-  function frame(){
-    cx.clearRect(0, 0, 480, 820);
-    ps.forEach(p => {
-      p.y += p.vy;
-      p.x += p.vx;
-      p.a += p.da;
-      if (p.a <= 0 || p.a >= 1) p.da *= -1;
-      if (p.y < -5) { p.y = 825; p.x = Math.random() * 480; }
-      cx.beginPath();
-      cx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      const clr = Math.random() < .7 ? `rgba(80,160,255,${p.a*.7})` : `rgba(140,220,255,${p.a*.6})`;
-      cx.fillStyle = clr;
-      cx.fill();
-    });
-    requestAnimationFrame(frame);
-  }
-  frame();
-})();
-
-/* ── App principal ─────────────────────────────────────── */
 (async () => {
   const cfg      = await window.gema.getConfig();
   const ANT_KEY  = cfg.anthropicApiKey   || '';
@@ -330,7 +225,6 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
     chatOpen = !chatOpen;
     document.getElementById('panel').classList.toggle('off', !chatOpen);
     if (chatOpen) {
-      document.getElementById('bub').style.display = 'none';
       if (!inited) { inited=true; addMsg('a', GREET); speak(GREET); }
       setTimeout(() => document.getElementById('ti').focus(), 130);
     } else {
@@ -383,7 +277,6 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
     c.appendChild(d); c.scrollTop=c.scrollHeight; return d;
   }
   function wave(on) {
-    document.getElementById('wv').classList.toggle('on', on);
     document.getElementById('cw').classList.toggle('talking', on);
   }
 
@@ -429,12 +322,6 @@ Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
   });
 
   document.getElementById('quit').addEventListener('click', () => window.gema.quit());
-
-  /* Auto-ocultar burbuja */
-  setTimeout(() => {
-    const b = document.getElementById('bub');
-    if(b){b.style.opacity='0';setTimeout(()=>b&&(b.style.display='none'),500);}
-  }, 8000);
 
   if(synth){synth.getVoices();synth.addEventListener('voiceschanged',()=>synth.getVoices());}
 })();
