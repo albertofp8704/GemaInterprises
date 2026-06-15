@@ -10,20 +10,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
 
     steps:
       - name: Checkout
@@ -33,20 +24,13 @@ jobs:
         run: |
           sudo apt-get install -y librsvg2-bin
           cd english-teacher
-          rsvg-convert -w 192  -h 192  icon.svg -o icon-192.png
-          rsvg-convert -w 512  -h 512  icon.svg -o icon-512.png
-          rsvg-convert -w 180  -h 180  icon.svg -o icon-180.png
+          rsvg-convert -w 192 -h 192 icon.svg -o icon-192.png
+          rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
+          rsvg-convert -w 180 -h 180 icon.svg -o icon-180.png
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v4
+      - name: Deploy to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          enablement: true
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: english-teacher
-
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
+          folder: english-teacher
+          branch: gh-pages
+          clean: true
