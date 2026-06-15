@@ -185,11 +185,11 @@ html,body{
   // ── Zonas del cuerpo (porcentajes del canvas 220x360) ──
   // Ajusta estos valores si el personaje está descentrado
   const Z = {
-    hair:  { y: 0,   h: 105 },           // pelo (top)
-    eyeL:  { x: 78,  y: 82,  r: 10 },   // ojo izquierdo
-    eyeR:  { x: 138, y: 82,  r: 10 },   // ojo derecho
-    armL:  { x: 0,   y: 165, w: 80,  h: 110 }, // brazo izq
-    armR:  { x: 140, y: 165, w: 80,  h: 110 }, // brazo der
+    hair:  { y: 0,   h: 112 },           // pelo (top)
+    eyeL:  { x: 79,  y: 118, r: 14 },   // ojo izquierdo
+    eyeR:  { x: 141, y: 118, r: 14 },   // ojo derecho
+    armL:  { x: 0,   y: 168, w: 82,  h: 110 }, // brazo izq
+    armR:  { x: 138, y: 168, w: 82,  h: 110 }, // brazo der
   };
 
   // ── Estado de animación ──
@@ -222,38 +222,40 @@ html,body{
     ctx.restore();
   }
 
-  // ── Dibuja los ojos animados ──
+  // ── Dibuja los ojos animados (borra los originales primero) ──
   function drawEyes() {
     [Z.eyeL, Z.eyeR].forEach(eye => {
-      const cx = eye.x + pupX;
-      const cy = eye.y + pupY;
-      const openH = blinkOpen; // 1=open, 0=closed (vertical scale)
+      const pad = eye.r + 4;
 
+      // 1. Borra el ojo original del PNG
+      eraseRegion(eye.x - pad, eye.y - pad, pad * 2, pad * 2);
+
+      // 2. Redibujar el ojo con animación (pivot = centro del ojo)
       ctx.save();
-      ctx.translate(eye.x, eye.y);
-      ctx.scale(1, openH);
+      ctx.translate(eye.x + pupX, eye.y + pupY); // centro del iris + drift de pupila
+      ctx.scale(1, blinkOpen);                     // parpadeo: squish vertical en el centro
 
-      // Iris con gradiente
-      const grad = ctx.createRadialGradient(pupX, pupY, 0, pupX, pupY, eye.r);
-      grad.addColorStop(0,   'rgba(120,220,255,0.95)');
-      grad.addColorStop(0.3, 'rgba(60,160,255,0.85)');
-      grad.addColorStop(0.7, 'rgba(20,80,220,0.7)');
-      grad.addColorStop(1,   'rgba(0,40,160,0.2)');
+      // Iris con gradiente radial
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, eye.r);
+      grad.addColorStop(0,   'rgba(140,230,255,0.98)');
+      grad.addColorStop(0.3, 'rgba(70,170,255,0.90)');
+      grad.addColorStop(0.7, 'rgba(20,90,230,0.75)');
+      grad.addColorStop(1,   'rgba(0,40,180,0.15)');
       ctx.beginPath();
-      ctx.arc(pupX, pupY, eye.r, 0, Math.PI * 2);
+      ctx.arc(0, 0, eye.r, 0, Math.PI * 2);
       ctx.fillStyle = grad;
       ctx.fill();
 
       // Pupila
       ctx.beginPath();
-      ctx.arc(pupX * 0.6, pupY * 0.6, eye.r * 0.38, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0,10,50,0.9)';
+      ctx.arc(0, 0, eye.r * 0.38, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,10,55,0.92)';
       ctx.fill();
 
-      // Reflejo
+      // Reflejo brillante
       ctx.beginPath();
-      ctx.arc(pupX * 0.5 - eye.r * 0.28, pupY * 0.5 - eye.r * 0.32, eye.r * 0.18, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.arc(-eye.r * 0.26, -eye.r * 0.30, eye.r * 0.17, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.80)';
       ctx.fill();
 
       ctx.restore();
