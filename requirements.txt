@@ -8,3 +8,5 @@ bcrypt==3.2.2
 stripe==8.5.0
 python-multipart==0.0.9
 aiofiles==23.2.1
+anthropic>=0.25.0
+httpx>=0.24.0

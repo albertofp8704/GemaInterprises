@@ -1029,5 +1029,261 @@ setInterval(() => {
 }, 2500);
 </script>
 
+<!-- ═══════════════════════════════════════════════════
+     GEMA — Agente Holográfico Flotante
+     ═══════════════════════════════════════════════════ -->
+<style>
+/* ── Root widget ── */
+#gema-widget{position:fixed;bottom:22px;right:22px;z-index:2147483647;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:none;font-family:'Inter',sans-serif}
+
+/* ── Chat panel ── */
+#gema-panel{pointer-events:all;width:330px;background:rgba(3,6,14,.97);border:1px solid rgba(0,200,5,.28);border-radius:20px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.75),0 0 60px rgba(0,200,5,.07),inset 0 0 40px rgba(0,200,5,.02);display:flex;flex-direction:column;transform-origin:bottom right;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s}
+#gema-panel.gx-off{transform:scale(.72) translateY(18px);opacity:0;pointer-events:none}
+
+.gx-hdr{padding:13px 15px;background:linear-gradient(135deg,rgba(0,200,5,.07),rgba(0,30,5,.05));border-bottom:1px solid rgba(0,200,5,.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.gx-info{display:flex;align-items:center;gap:10px}
+.gx-av{width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,rgba(0,200,5,.2),rgba(0,30,5,.4));border:1.5px solid rgba(0,200,5,.6);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 14px rgba(0,200,5,.4),inset 0 0 8px rgba(0,200,5,.08);animation:avPulse 3s ease-in-out infinite}
+@keyframes avPulse{0%,100%{box-shadow:0 0 14px rgba(0,200,5,.4),inset 0 0 8px rgba(0,200,5,.08)}50%{box-shadow:0 0 26px rgba(0,200,5,.65),inset 0 0 14px rgba(0,200,5,.15)}}
+.gx-name{font-size:13.5px;font-weight:700;color:#E8EDF5;letter-spacing:.4px}
+.gx-status{font-size:10.5px;color:#00C805;letter-spacing:.3px}
+.gx-close{width:27px;height:27px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:#556070;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.gx-close:hover{background:rgba(255,255,255,.09);color:#E8EDF5}
+
+.gx-msgs{height:310px;overflow-y:auto;padding:13px 11px;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin;scrollbar-color:rgba(0,200,5,.18) transparent}
+.gx-msg{max-width:88%;padding:9px 13px;border-radius:14px;font-size:12.5px;line-height:1.55;animation:msgIn .28s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes msgIn{from{opacity:0;transform:translateY(7px) scale(.94)}to{opacity:1;transform:none}}
+.gx-msg.usr{background:rgba(0,200,5,.11);border:1px solid rgba(0,200,5,.2);color:#E8EDF5;align-self:flex-end;border-bottom-right-radius:4px}
+.gx-msg.bot{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:#C4CDD8;align-self:flex-start;border-bottom-left-radius:4px}
+.gx-typing{display:flex;gap:5px;align-items:center;padding:10px 14px;align-self:flex-start}
+.gx-dot{width:7px;height:7px;background:rgba(0,200,5,.45);border-radius:50%;animation:dotBounce 1.25s ease-in-out infinite}
+.gx-dot:nth-child(2){animation-delay:.18s}.gx-dot:nth-child(3){animation-delay:.36s}
+@keyframes dotBounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-7px);opacity:1}}
+
+.gx-inp-row{display:flex;align-items:center;gap:7px;padding:11px 11px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0}
+#gx-text{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:8px 11px;color:#E8EDF5;font-size:12.5px;font-family:inherit;outline:none;transition:border-color .2s}
+#gx-text:focus{border-color:rgba(0,200,5,.38)}
+#gx-text::placeholder{color:#3a4455}
+.gx-btn{width:35px;height:35px;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:#556070;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.gx-btn:hover{background:rgba(0,200,5,.1);border-color:rgba(0,200,5,.3);color:#00C805}
+.gx-mic.gx-on{background:rgba(255,45,85,.11);border-color:rgba(255,45,85,.38);color:#FF2D55;animation:micPulse 1s ease-in-out infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,45,85,.35)}50%{box-shadow:0 0 0 9px rgba(255,45,85,0)}}
+.gx-send{background:rgba(0,200,5,.1);border-color:rgba(0,200,5,.28);color:#00C805}
+.gx-send:hover{background:rgba(0,200,5,.2)}
+
+/* ── Holographic character ── */
+#gema-char{pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative}
+.gx-wrap{width:86px;height:86px;position:relative;animation:gxFloat 3.6s ease-in-out infinite,gxGlitch 13s steps(1) infinite}
+@keyframes gxFloat{0%,100%{transform:translateY(0) rotate(-.6deg)}25%{transform:translateY(-10px) rotate(.9deg)}75%{transform:translateY(-5px) rotate(-.4deg)}}
+@keyframes gxGlitch{0%,91%,100%{filter:drop-shadow(0 0 14px rgba(0,200,5,.55))}92%{filter:drop-shadow(3px 0 rgba(255,0,70,.7)) drop-shadow(-3px 0 rgba(0,190,255,.7));transform:translateX(3px) translateY(-8px) scaleX(1.03)}93%{filter:drop-shadow(-3px 0 rgba(255,0,70,.7)) drop-shadow(3px 0 rgba(0,190,255,.7));transform:translateX(-2px) translateY(-7px)}94%{filter:drop-shadow(0 0 14px rgba(0,200,5,.55));transform:translateY(-9px)}}
+.gx-svg{width:86px;height:86px;overflow:visible}
+/* Outer ring pulsing */
+.gx-ring{animation:ringPulse 2.6s ease-in-out infinite}
+@keyframes ringPulse{0%,100%{opacity:.22;stroke-width:1.5}50%{opacity:.55;stroke-width:2}}
+/* Eye blink */
+.gx-eye{transform-box:fill-box;transform-origin:center;animation:eyeBlink 5.5s ease-in-out infinite}
+.gx-eye:last-of-type{animation-delay:.07s}
+@keyframes eyeBlink{0%,88%,100%{transform:scaleY(1)}93%{transform:scaleY(.05)}}
+/* Mouth when speaking */
+.gx-mouth{transform-box:fill-box;transform-origin:center;transition:transform .25s}
+.gx-wrap.speaking .gx-mouth{animation:mouthTalk .38s ease-in-out infinite alternate}
+@keyframes mouthTalk{from{transform:scaleY(.5)}to{transform:scaleY(2.8)}}
+/* Scanlines overlay */
+.gx-scan{position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,200,5,.022) 3px,rgba(0,200,5,.022) 4px);pointer-events:none;overflow:hidden}
+
+/* ── Greeting bubble ── */
+#gx-bubble{position:absolute;bottom:calc(100% + 10px);right:0;background:rgba(3,6,14,.97);border:1px solid rgba(0,200,5,.42);border-radius:14px 14px 4px 14px;padding:9px 14px;font-size:12px;color:#E8EDF5;white-space:nowrap;box-shadow:0 0 22px rgba(0,200,5,.15);animation:bubblePop .45s cubic-bezier(.34,1.56,.64,1) both;transition:opacity .4s;pointer-events:none;z-index:10}
+@keyframes bubblePop{from{opacity:0;transform:scale(.8) translateY(6px)}to{opacity:1;transform:none}}
+#gx-bubble::after{content:'';position:absolute;bottom:-7px;right:14px;border:7px solid transparent;border-top-color:rgba(0,200,5,.42);border-bottom:none}
+
+/* ── Wave bars ── */
+.gx-wave{display:flex;gap:2px;align-items:center;height:14px;opacity:0;transition:opacity .3s}
+.gx-wave.on{opacity:1}
+.gx-wb{width:3px;background:#00C805;border-radius:2px;animation:wb .72s ease-in-out infinite}
+.gx-wb:nth-child(1){height:4px;animation-delay:0s}
+.gx-wb:nth-child(2){height:11px;animation-delay:.1s}
+.gx-wb:nth-child(3){height:14px;animation-delay:.2s}
+.gx-wb:nth-child(4){height:11px;animation-delay:.3s}
+.gx-wb:nth-child(5){height:4px;animation-delay:.4s}
+@keyframes wb{0%,100%{transform:scaleY(.32)}50%{transform:scaleY(1)}}
+/* Label */
+.gx-label{font-size:9.5px;font-weight:700;letter-spacing:2.2px;color:rgba(0,200,5,.65);text-transform:uppercase;text-shadow:0 0 9px rgba(0,200,5,.5);font-family:'JetBrains Mono',monospace}
+</style>
+
+<div id="gema-widget">
+  <!-- Chat panel -->
+  <div id="gema-panel" class="gx-off">
+    <div class="gx-hdr">
+      <div class="gx-info">
+        <div class="gx-av">👾</div>
+        <div>
+          <div class="gx-name">GEMA</div>
+          <div class="gx-status">⬤ Sistema en línea</div>
+        </div>
+      </div>
+      <button class="gx-close" onclick="gxToggle()">✕</button>
+    </div>
+    <div class="gx-msgs" id="gx-msgs"></div>
+    <div class="gx-inp-row">
+      <button class="gx-btn gx-mic" id="gx-mic" onclick="gxMic()" title="Hablar">🎤</button>
+      <input id="gx-text" placeholder="Pregunta a GEMA..." onkeydown="if(event.key==='Enter')gxSend()"/>
+      <button class="gx-btn gx-send" onclick="gxSend()">↑</button>
+    </div>
+  </div>
+
+  <!-- Holographic character (always visible) -->
+  <div id="gema-char" onclick="gxToggle()">
+    <div class="gx-wrap" id="gx-wrap">
+      <svg class="gx-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="gxGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <radialGradient id="gxFace" cx="50%" cy="42%" r="58%">
+            <stop offset="0%"   stop-color="rgba(0,200,5,.16)"/>
+            <stop offset="100%" stop-color="rgba(0,8,2,.97)"/>
+          </radialGradient>
+        </defs>
+        <!-- Outer pulsing ring -->
+        <circle class="gx-ring" cx="50" cy="50" r="46" fill="none" stroke="rgba(0,200,5,.35)" stroke-width="1.5"/>
+        <!-- Inner ring -->
+        <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(0,200,5,.1)" stroke-width=".6"/>
+        <!-- Face -->
+        <circle cx="50" cy="50" r="37" fill="url(#gxFace)" stroke="rgba(0,200,5,.62)" stroke-width="2"/>
+        <!-- Left android eye -->
+        <g class="gx-eye">
+          <rect x="18" y="35" width="24" height="13" rx="3.5" fill="rgba(0,200,5,.87)" filter="url(#gxGlow)"/>
+          <rect x="20" y="37" width="9" height="9"  rx="2"   fill="rgba(0,15,2,.97)"/>
+          <rect x="22" y="39" width="3.5" height="3.5" rx="1" fill="rgba(0,200,5,.65)"/>
+        </g>
+        <!-- Right android eye -->
+        <g class="gx-eye" style="animation-delay:.07s">
+          <rect x="58" y="35" width="24" height="13" rx="3.5" fill="rgba(0,200,5,.87)" filter="url(#gxGlow)"/>
+          <rect x="60" y="37" width="9" height="9"  rx="2"   fill="rgba(0,15,2,.97)"/>
+          <rect x="62" y="39" width="3.5" height="3.5" rx="1" fill="rgba(0,200,5,.65)"/>
+        </g>
+        <!-- Nose -->
+        <circle cx="46" cy="58" r="1.5" fill="rgba(0,200,5,.28)"/>
+        <circle cx="54" cy="58" r="1.5" fill="rgba(0,200,5,.28)"/>
+        <!-- Mouth -->
+        <rect class="gx-mouth" x="33" y="67" width="34" height="4" rx="2" fill="rgba(0,200,5,.42)" style="transform-box:fill-box;transform-origin:center"/>
+        <!-- Crosshair marks -->
+        <line x1="13" y1="50" x2="9"  y2="50" stroke="rgba(0,200,5,.5)" stroke-width="1.5"/>
+        <line x1="87" y1="50" x2="91" y2="50" stroke="rgba(0,200,5,.5)" stroke-width="1.5"/>
+        <line x1="50" y1="13" x2="50" y2="9"  stroke="rgba(0,200,5,.5)" stroke-width="1.5"/>
+        <line x1="50" y1="87" x2="50" y2="91" stroke="rgba(0,200,5,.5)" stroke-width="1.5"/>
+        <!-- Corner brackets -->
+        <path d="M17,23 L13,23 L13,27" fill="none" stroke="rgba(0,200,5,.4)" stroke-width="1.2"/>
+        <path d="M83,23 L87,23 L87,27" fill="none" stroke="rgba(0,200,5,.4)" stroke-width="1.2"/>
+        <path d="M17,77 L13,77 L13,73" fill="none" stroke="rgba(0,200,5,.4)" stroke-width="1.2"/>
+        <path d="M83,77 L87,77 L87,73" fill="none" stroke="rgba(0,200,5,.4)" stroke-width="1.2"/>
+      </svg>
+      <div class="gx-scan"></div>
+      <div id="gx-bubble">Sistema GEMA activo 📡 Click para hablar</div>
+    </div>
+    <div class="gx-wave" id="gx-wave">
+      <div class="gx-wb"></div><div class="gx-wb"></div><div class="gx-wb"></div>
+      <div class="gx-wb"></div><div class="gx-wb"></div>
+    </div>
+    <div class="gx-label">GEMA AI</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const GREET = 'Sistema GEMA inicializado 📡 Soy tu asistente de trading holográfico. Conozco todas las señales, mercados y planes de la plataforma. ¿En qué puedo ayudarte?';
+  const XI_VOICE = ''; // Set ELEVENLABS_VOICE_ID env var for custom cloned voice
+
+  let panelOpen=false, inited=false, recOn=false, synth=window.speechSynthesis, rec=null, hist=[];
+  let useXI = !!XI_VOICE; // true when ElevenLabs voice configured
+
+  // Auto-hide bubble after 7s
+  setTimeout(()=>{const b=document.getElementById('gx-bubble');if(b){b.style.opacity='0';setTimeout(()=>b&&(b.style.display='none'),500)}},7000);
+
+  window.gxToggle=function(){
+    panelOpen=!panelOpen;
+    document.getElementById('gema-panel').classList.toggle('gx-off',!panelOpen);
+    if(panelOpen){
+      const b=document.getElementById('gx-bubble');if(b)b.style.display='none';
+      if(!inited){inited=true;gxAddMsg('bot',GREET);gxSpeak(GREET);}
+      setTimeout(()=>document.getElementById('gx-text')?.focus(),120);
+    } else {
+      if(synth)synth.cancel();gxWave(false);
+    }
+  };
+
+  window.gxSend=async function(){
+    const el=document.getElementById('gx-text');
+    const txt=el.value.trim();if(!txt)return;el.value='';
+    gxAddMsg('usr',txt);hist.push({role:'user',content:txt});
+    const typ=gxTyping();
+    try{
+      const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt,history:hist.slice(-10)})});
+      const d=await r.json();typ.remove();
+      const reply=d.response||'Error al responder.';
+      hist.push({role:'assistant',content:reply});
+      gxAddMsg('bot',reply);gxSpeak(reply);
+    }catch(e){typ.remove();gxAddMsg('bot','⚠ Sin conexión con el servidor.');}
+  };
+
+  function gxAddMsg(cls,text){
+    const c=document.getElementById('gx-msgs');
+    const d=document.createElement('div');d.className='gx-msg '+cls;d.textContent=text;
+    c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
+  }
+  function gxTyping(){
+    const c=document.getElementById('gx-msgs');
+    const d=document.createElement('div');d.className='gx-typing';
+    d.innerHTML='<div class="gx-dot"></div><div class="gx-dot"></div><div class="gx-dot"></div>';
+    c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
+  }
+  function gxWave(on){
+    document.getElementById('gx-wave')?.classList.toggle('on',on);
+    document.getElementById('gx-wrap')?.classList.toggle('speaking',on);
+  }
+
+  async function gxSpeak(text){
+    // Try ElevenLabs custom voice first
+    if(useXI){
+      try{
+        const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice_id:XI_VOICE})});
+        if(r.ok){
+          const blob=await r.blob();
+          const url=URL.createObjectURL(blob);
+          const audio=new Audio(url);
+          gxWave(true);
+          audio.onended=()=>{gxWave(false);URL.revokeObjectURL(url)};
+          audio.onerror=()=>{gxWave(false);URL.revokeObjectURL(url)};
+          audio.play();return;
+        }
+      }catch(e){/* fall through to browser TTS */}
+    }
+    // Browser TTS fallback
+    if(!synth)return;synth.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='es-ES';u.rate=1.0;u.pitch=1.08;
+    const vv=synth.getVoices();
+    const v=vv.find(x=>x.lang.startsWith('es')&&/female|mujer|paulina|monica|lucia/i.test(x.name))||vv.find(x=>x.lang.startsWith('es'))||null;
+    if(v)u.voice=v;
+    u.onstart=()=>gxWave(true);u.onend=u.onerror=()=>gxWave(false);
+    synth.speak(u);
+  }
+
+  window.gxMic=function(){
+    if(!rec){
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SR){gxAddMsg('bot','⚠ Tu navegador no soporta reconocimiento de voz.');return;}
+      rec=new SR();rec.lang='es-ES';rec.interimResults=false;
+      rec.onresult=e=>{const t=e.results[0][0].transcript;document.getElementById('gx-text').value=t;gxSend();};
+      rec.onend=rec.onerror=()=>{recOn=false;const b=document.getElementById('gx-mic');if(b){b.classList.remove('gx-on');b.textContent='🎤';}};
+    }
+    if(recOn){rec.stop();}
+    else{if(synth)synth.cancel();rec.start();recOn=true;const b=document.getElementById('gx-mic');if(b){b.classList.add('gx-on');b.textContent='⏹';}}
+  };
+
+  if(synth){synth.getVoices();synth.addEventListener('voiceschanged',()=>synth.getVoices());}
+})();
+</script>
+
 </body>
 </html>
