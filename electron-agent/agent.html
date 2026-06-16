@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title>GEMA</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+html,body{
+  width:480px;height:820px;
+  background:transparent!important;
+  overflow:hidden;
+  font-family:'Segoe UI','SF Pro Display','Inter',sans-serif;
+  -webkit-user-select:none;user-select:none;
+}
+
+#root{
+  width:480px;height:820px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;
+  padding-bottom:10px;
+  position:relative;
+}
+
+/* ── Panel de chat ────────────────────────────────────── */
+#panel{
+  width:440px;
+  background:rgba(2,4,18,.97);
+  border:1px solid rgba(60,140,255,.32);
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.88),0 0 60px rgba(40,100,255,.1),inset 0 0 40px rgba(40,100,255,.03);
+  display:flex;flex-direction:column;
+  margin-bottom:12px;
+  transform-origin:bottom center;
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .3s,max-height .35s;
+  max-height:420px;
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  position:relative;z-index:10;
+}
+#panel.off{
+  transform:scale(.6) translateY(28px);
+  opacity:0;pointer-events:none;
+  max-height:0;margin-bottom:0;overflow:hidden;
+}
+.ph{padding:13px 15px;background:rgba(40,100,255,.06);border-bottom:1px solid rgba(60,140,255,.12);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ph-l{display:flex;align-items:center;gap:10px}
+.ph-av{width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,rgba(80,160,255,.25),rgba(0,20,80,.5));border:1.5px solid rgba(80,160,255,.65);display:flex;align-items:center;justify-content:center;overflow:hidden;animation:avG 3s ease-in-out infinite}
+.ph-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+@keyframes avG{0%,100%{box-shadow:0 0 12px rgba(80,160,255,.45)}50%{box-shadow:0 0 24px rgba(80,160,255,.75)}}
+.ph-name{font-size:13px;font-weight:700;color:#E8EDF5;letter-spacing:.4px}
+.ph-st{font-size:10px;color:#5ab4ff;letter-spacing:.3px}
+.ph-close{width:26px;height:26px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:#556070;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.ph-close:hover{background:rgba(255,255,255,.1);color:#E8EDF5}
+.msgs{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin;scrollbar-color:rgba(80,160,255,.2) transparent}
+.m{max-width:87%;padding:9px 12px;border-radius:13px;font-size:12.5px;line-height:1.55;animation:mIn .28s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes mIn{from{opacity:0;transform:translateY(7px) scale(.93)}to{opacity:1;transform:none}}
+.m.u{background:rgba(60,140,255,.14);border:1px solid rgba(60,140,255,.25);color:#E8EDF5;align-self:flex-end;border-bottom-right-radius:4px}
+.m.a{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:#C4D8FF;align-self:flex-start;border-bottom-left-radius:4px}
+.typ{display:flex;gap:5px;align-items:center;padding:10px 12px;align-self:flex-start}
+.d{width:6px;height:6px;background:rgba(80,160,255,.5);border-radius:50%;animation:db 1.2s ease-in-out infinite}
+.d:nth-child(2){animation-delay:.17s}.d:nth-child(3){animation-delay:.34s}
+@keyframes db{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-7px);opacity:1}}
+.ir{display:flex;align-items:center;gap:7px;padding:11px 11px;border-top:1px solid rgba(255,255,255,.055);flex-shrink:0}
+#ti{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:8px 11px;color:#E8EDF5;font-size:12.5px;font-family:inherit;outline:none;transition:border-color .2s}
+#ti:focus{border-color:rgba(80,160,255,.45)}
+#ti::placeholder{color:#3a4455}
+.ib{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:#556070;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.ib:hover{background:rgba(60,140,255,.12);border-color:rgba(60,140,255,.35);color:#5ab4ff}
+.ib.on{background:rgba(255,45,85,.12);border-color:rgba(255,45,85,.4);color:#FF2D55;animation:mP 1s ease-in-out infinite}
+@keyframes mP{0%,100%{box-shadow:0 0 0 0 rgba(255,45,85,.4)}50%{box-shadow:0 0 0 9px rgba(255,45,85,0)}}
+.sb{background:rgba(60,140,255,.12);border-color:rgba(60,140,255,.32);color:#5ab4ff}
+.sb:hover{background:rgba(60,140,255,.24)}
+
+/* ── El área transparente NO captura eventos — solo las zonas visibles ── */
+#root{ pointer-events:none; }
+#panel, #char-zone, #quit{ pointer-events:auto; }
+
+/* ── Personaje ────────────────────────────────────────── */
+#char-zone{
+  display:flex;flex-direction:column;
+  align-items:center;
+  cursor:pointer;
+  position:relative;z-index:10;
+}
+
+#cw{
+  width:220px;height:360px;
+  position:relative;
+  cursor:grab;
+  animation:fl 3.8s ease-in-out infinite;
+}
+#cw:active{cursor:grabbing;}
+
+@keyframes fl{
+  0%,100%{transform:translateY(0) rotate(-.4deg)}
+  25%{transform:translateY(-16px) rotate(.5deg)}
+  75%{transform:translateY(-8px) rotate(-.3deg)}
+}
+
+/* Canvas principal del personaje */
+#char-canvas{
+  width:220px;height:360px;
+  display:block;
+  filter:drop-shadow(0 0 18px rgba(80,160,255,.75))
+         drop-shadow(0 0 36px rgba(40,100,255,.55))
+         drop-shadow(0 0 60px rgba(0,60,255,.35));
+  animation:glowPulse 2.8s ease-in-out infinite;
+}
+@keyframes glowPulse{
+  0%,100%{filter:drop-shadow(0 0 18px rgba(80,160,255,.7)) drop-shadow(0 0 36px rgba(40,100,255,.5)) drop-shadow(0 0 60px rgba(0,60,255,.3))}
+  50%{filter:drop-shadow(0 0 26px rgba(80,160,255,.95)) drop-shadow(0 0 52px rgba(40,100,255,.75)) drop-shadow(0 0 85px rgba(0,60,255,.5))}
+}
+#char-canvas.talking{
+  animation:talkGlow .5s ease-in-out infinite alternate!important;
+}
+@keyframes talkGlow{
+  from{filter:drop-shadow(0 0 28px rgba(80,200,255,.9)) drop-shadow(0 0 55px rgba(40,150,255,.8)) drop-shadow(0 0 90px rgba(0,100,255,.55))}
+  to{filter:drop-shadow(0 0 40px rgba(80,210,255,1)) drop-shadow(0 0 75px rgba(40,160,255,.9)) drop-shadow(0 0 120px rgba(0,120,255,.65))}
+}
+
+/* Glitch ocasional */
+#cw.glitch{animation:fl 3.8s ease-in-out infinite,gl .4s steps(1) 1}
+@keyframes gl{
+  0%{filter:none}
+  20%{filter:drop-shadow(5px 0 rgba(255,0,100,.9)) drop-shadow(-5px 0 rgba(0,210,255,.9));transform:translateX(5px) translateY(-18px)}
+  40%{filter:drop-shadow(-5px 0 rgba(255,0,100,.9));transform:translateX(-4px) translateY(-19px)}
+  60%{filter:none;transform:translateY(-17px)}
+  100%{filter:none}
+}
+
+/* Botón cerrar */
+#quit{
+  position:fixed;top:6px;right:6px;
+  width:20px;height:20px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:5px;color:rgba(255,255,255,.22);
+  cursor:pointer;font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;z-index:999;
+}
+#quit:hover{background:rgba(255,45,85,.14);border-color:rgba(255,45,85,.4);color:#FF2D55}
+</style>
+</head>
+<body>
+
+<div id="root">
+  <div id="panel" class="off">
+    <div class="ph">
+      <div class="ph-l">
+        <div class="ph-av"><img src="assets/gema_char.png" alt="GEMA"/></div>
+        <div>
+          <div class="ph-name">GEMA</div>
+          <div class="ph-st">⬤ Sistema activo</div>
+        </div>
+      </div>
+      <button class="ph-close" id="cc">✕</button>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="ir">
+      <button class="ib" id="mic">🎤</button>
+      <input id="ti" placeholder="Habla con GEMA…"/>
+      <button class="ib sb" id="snd">↑</button>
+    </div>
+  </div>
+
+  <div id="char-zone">
+    <div id="cw">
+      <canvas id="char-canvas" width="220" height="360"></canvas>
+    </div>
+  </div>
+</div>
+
+<button id="quit" title="Cerrar">✕</button>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   ANIMACIÓN DEL PERSONAJE — canvas con capas independientes
+   ═══════════════════════════════════════════════════════ */
+(function initCharAnim() {
+  const canvas = document.getElementById('char-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 220, H = 360;
+
+  const img = new Image();
+  img.src = 'assets/gema_char.png';
+
+  // ── Zonas del cuerpo (porcentajes del canvas 220x360) ──
+  // Ajusta estos valores si el personaje está descentrado
+  const Z = {
+    hair:  { y: 0,   h: 112 },           // pelo (top)
+    eyeL:  { x: 79,  y: 118, r: 14 },   // ojo izquierdo
+    eyeR:  { x: 141, y: 118, r: 14 },   // ojo derecho
+    armL:  { x: 0,   y: 168, w: 82,  h: 110 }, // brazo izq
+    armR:  { x: 138, y: 168, w: 82,  h: 110 }, // brazo der
+  };
+
+  // ── Estado de animación ──
+  let t = 0;
+  let blinkState = 0;   // 0=abierto, 1=cerrando, 2=abriendo
+  let blinkOpen = 1.0;  // 1=abierto, 0=cerrado
+  let nextBlink = 2.5 + Math.random() * 2;
+  let pupX = 0, pupY = 0;   // posición actual del pupil
+  let pupTX = 0, pupTY = 0; // target
+  let nextPupMove = 1.5 + Math.random() * 2;
+  let talkMod = 0;      // 0=normal, 1=hablando
+
+  // ── Dibuja una región clipeada con transformación ──
+  function drawRegion(clipX, clipY, clipW, clipH, pivotX, pivotY, angle, offsetX = 0, offsetY = 0) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(clipX, clipY, clipW, clipH);
+    ctx.clip();
+    ctx.translate(pivotX, pivotY);
+    ctx.rotate(angle);
+    ctx.drawImage(img, offsetX - pivotX, offsetY - pivotY, W, H);
+    ctx.restore();
+  }
+
+  // ── Borra una región (destination-out) ──
+  function eraseRegion(x, y, w, h) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
+  }
+
+  // ── Parpadeo: desliza un párpado encima del ojo sin borrar el PNG ──
+  function drawEyes() {
+    if (blinkOpen >= 0.98) return; // ojo totalmente abierto → nada que hacer
+
+    const closedF = 1 - blinkOpen; // 0=abierto, 1=cerrado
+
+    [Z.eyeL, Z.eyeR].forEach(eye => {
+      // Altura del párpado que baja desde arriba del ojo
+      const lidTop    = eye.y - eye.r * 1.3;
+      const lidTotal  = eye.r * 2.5;
+      const lidHeight = lidTotal * closedF;
+
+      ctx.save();
+      // Recortar solo la zona que debe cubrir el párpado
+      ctx.beginPath();
+      ctx.rect(eye.x - eye.r * 1.5, lidTop, eye.r * 3, lidHeight);
+      ctx.clip();
+      // Dibujar una elipse del color de la piel (azul oscuro del personaje)
+      ctx.beginPath();
+      ctx.ellipse(eye.x, eye.y - eye.r * 0.1, eye.r * 1.45, eye.r * 1.3, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(28, 55, 175, 0.97)';
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  // ── Frame loop ──
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    t += 1 / 60;
+
+    // ── PARPADEO ──
+    if (blinkState === 0 && t > nextBlink) {
+      blinkState = 1; // empieza a cerrar
+    }
+    if (blinkState === 1) {
+      blinkOpen = Math.max(0, blinkOpen - 0.18);
+      if (blinkOpen <= 0) blinkState = 2;
+    } else if (blinkState === 2) {
+      blinkOpen = Math.min(1, blinkOpen + 0.14);
+      if (blinkOpen >= 1) {
+        blinkState = 0;
+        nextBlink = t + 2.5 + Math.random() * 3.5;
+      }
+    }
+
+    // ── MOVIMIENTO DE PUPILAS ──
+    if (t > nextPupMove) {
+      pupTX = (Math.random() - 0.5) * 5;
+      pupTY = (Math.random() - 0.5) * 2.5;
+      nextPupMove = t + 1.2 + Math.random() * 2.8;
+    }
+    pupX += (pupTX - pupX) * 0.04;
+    pupY += (pupTY - pupY) * 0.04;
+
+    // ── ÁNGULOS DE ANIMACIÓN ──
+    // Pelo: balanceo suave compuesto de dos frecuencias
+    const hairAngle = Math.sin(t * 1.3) * 0.022 + Math.sin(t * 2.1) * 0.008;
+
+    // Brazo izquierdo: sube y baja, rotación desde el hombro
+    const armLAngle = Math.sin(t * 1.5) * 0.09 + (talkMod * Math.sin(t * 4) * 0.04);
+
+    // Brazo derecho: ligeramente desfasado y opuesto
+    const armRAngle = Math.sin(t * 1.5 + 1.2) * 0.08 + (talkMod * Math.sin(t * 4 + 1) * 0.035);
+
+    // ── DIBUJAR PERSONAJE ──
+
+    // 1. Cuerpo completo (base estática)
+    ctx.drawImage(img, 0, 0, W, H);
+
+    // 2. PELO animado encima
+    eraseRegion(0, Z.hair.y, W, Z.hair.h);
+    drawRegion(0, Z.hair.y, W, Z.hair.h,
+               W / 2, Z.hair.y + Z.hair.h,  // pivote: centro-abajo del pelo
+               hairAngle);
+
+    // 3. BRAZO IZQUIERDO animado encima
+    eraseRegion(Z.armL.x, Z.armL.y, Z.armL.w, Z.armL.h);
+    drawRegion(Z.armL.x, Z.armL.y, Z.armL.w, Z.armL.h,
+               Z.armL.x + Z.armL.w,          // pivote: hombro (borde derecho)
+               Z.armL.y,
+               armLAngle);
+
+    // 4. BRAZO DERECHO animado encima
+    eraseRegion(Z.armR.x, Z.armR.y, Z.armR.w, Z.armR.h);
+    drawRegion(Z.armR.x, Z.armR.y, Z.armR.w, Z.armR.h,
+               Z.armR.x,                     // pivote: hombro (borde izquierdo)
+               Z.armR.y,
+               armRAngle);
+
+    // 5. OJOS encima de todo
+    drawEyes();
+
+    requestAnimationFrame(frame);
+  }
+
+  img.onload = () => requestAnimationFrame(frame);
+
+  // Exponer control de "hablando" para el resto del app
+  window._gemaTalkAnim = (on) => { talkMod = on ? 1 : 0; };
+
+  // Glitch aleatorio
+  setInterval(() => {
+    const cw = document.getElementById('cw');
+    if (!cw) return;
+    cw.classList.add('glitch');
+    setTimeout(() => cw.classList.remove('glitch'), 400);
+  }, 12000 + Math.random() * 8000);
+})();
+
+
+/* ═══════════════════════════════════════════════════════
+   APP PRINCIPAL
+   ═══════════════════════════════════════════════════════ */
+(async () => {
+  const cfg       = await window.gema.getConfig();
+  const ANT_KEY   = cfg.anthropicApiKey    || '';
+  const XI_KEY    = cfg.elevenLabsApiKey   || '';
+  const XI_VOICE  = cfg.elevenLabsVoiceId  || '';
+  const XI_AGENT  = cfg.elevenLabsAgentId  || '';
+  const BACKEND   = (cfg.backendUrl || '').replace(/\/$/, '');
+
+  const SYSTEM = `Eres GEMA, una asistente de IA holográfica y experta en trading de mercados de predicción BTC en Kalshi para Gema Interprises.
+Personalidad: futurista, directa, ligeramente misteriosa.
+Datos: 83% win rate, whale detection $200+, mercados KXBTC15M/KXBTCH/KXBTCD, planes Starter/Pro($49)/Enterprise($199).
+Responde SIEMPRE en español. Máximo 3-4 frases. 1-2 emojis técnicos.`;
+
+  const GREET = '✨ Sistema GEMA inicializado. Soy tu asistente holográfica de trading. ¿En qué puedo ayudarte hoy?';
+
+  let chatOpen=false, inited=false, recOn=false, hist=[];
+  const synth = window.speechSynthesis;
+  let rec = null;
+
+  // ═══════════════════════════════════════════════════════
+  // MODO CONVERSACIONAL — ElevenLabs WebSocket
+  // Activo si XI_KEY + XI_AGENT están configurados
+  // ═══════════════════════════════════════════════════════
+  let convWs = null;
+  let micStream = null;
+  let micCtx = null;
+  let convActive = false;
+  let audioQueue = [];
+  let audioPlaying = false;
+
+  async function startConvAI() {
+    if (convActive) { stopConvAI(); return; }
+    try {
+      // Obtener URL firmada (no expone la API key en la URL)
+      const res = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${XI_AGENT}`,
+        { headers: { 'xi-api-key': XI_KEY } }
+      );
+      if (!res.ok) throw new Error('No se pudo conectar al agente');
+      const { signed_url } = await res.json();
+
+      convWs = new WebSocket(signed_url);
+      const playCtx = new AudioContext();
+      audioQueue = []; audioPlaying = false;
+
+      convWs.onopen = async () => {
+        convActive = true;
+        updateMicBtn(true);
+        addMsg('a', '🎙 Conexión de voz activa — habla cuando quieras');
+
+        // Anular prompt/voz del agente en ElevenLabs con nuestra config
+        const initMsg = {
+          type: 'conversation_initiation_client_data',
+          conversation_config_override: {
+            agent: { prompt: { prompt: SYSTEM }, language: 'es' }
+          }
+        };
+        if (XI_VOICE) initMsg.conversation_config_override.tts = { voice_id: XI_VOICE };
+        convWs.send(JSON.stringify(initMsg));
+
+        // Iniciar captura de micro (PCM16 @ 16kHz → base64)
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+        });
+        micCtx = new AudioContext({ sampleRate: 16000 });
+        const src = micCtx.createMediaStreamSource(micStream);
+        const proc = micCtx.createScriptProcessor(2048, 1, 1);
+        proc.onaudioprocess = e => {
+          if (convWs?.readyState !== WebSocket.OPEN) return;
+          const f32 = e.inputBuffer.getChannelData(0);
+          const i16 = new Int16Array(f32.length);
+          for (let i = 0; i < f32.length; i++)
+            i16[i] = Math.max(-32768, Math.min(32767, f32[i] * 32768));
+          let bin = '';
+          new Uint8Array(i16.buffer).forEach(b => bin += String.fromCharCode(b));
+          convWs.send(JSON.stringify({ user_audio_chunk: btoa(bin) }));
+        };
+        src.connect(proc);
+        proc.connect(micCtx.destination);
+      };
+
+      convWs.onmessage = async ev => {
+        const msg = JSON.parse(ev.data);
+        switch (msg.type) {
+          case 'audio': {
+            // Decodificar y encolar chunk de audio MP3
+            const b64 = msg.audio_event.audio_base_64;
+            const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            playCtx.decodeAudioData(bytes.buffer.slice(0)).then(buf => {
+              audioQueue.push(buf);
+              drainAudio(playCtx);
+            }).catch(() => {});
+            break;
+          }
+          case 'agent_response':
+            addMsg('a', msg.agent_response_event.agent_response);
+            wave(true);
+            break;
+          case 'user_transcript':
+            addMsg('u', msg.user_transcription_event.user_transcript);
+            break;
+          case 'interruption':
+            audioQueue = [];
+            wave(false);
+            break;
+          case 'ping':
+            convWs.send(JSON.stringify({ type: 'pong', event_id: msg.ping_event.event_id }));
+            break;
+        }
+      };
+
+      convWs.onclose = () => { convActive = false; updateMicBtn(false); wave(false); audioQueue = []; };
+      convWs.onerror = () => { addMsg('a', '⚠ Error en la conexión de voz.'); stopConvAI(); };
+
+    } catch(err) {
+      addMsg('a', `⚠ ${err.message}`);
+    }
+  }
+
+  function drainAudio(ctx) {
+    if (audioPlaying || audioQueue.length === 0) return;
+    audioPlaying = true;
+    const buf = audioQueue.shift();
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.onended = () => { audioPlaying = false; if(audioQueue.length) drainAudio(ctx); else wave(false); };
+    src.start();
+  }
+
+  function stopConvAI() {
+    convWs?.close();
+    micStream?.getTracks().forEach(t => t.stop());
+    micCtx?.close();
+    convWs = null; micStream = null; micCtx = null;
+    convActive = false; audioQueue = [];
+    updateMicBtn(false); wave(false);
+  }
+
+  function updateMicBtn(active) {
+    const b = document.getElementById('mic');
+    if (active) {
+      b.classList.add('on'); b.textContent = '⏹';
+      b.title = 'Detener conversación de voz';
+    } else {
+      b.classList.remove('on'); b.textContent = '🎤';
+      b.title = 'Iniciar conversación de voz';
+    }
+  }
+
+  // Zonas visibles: activan el mouse al entrar
+  const uiZones = [document.getElementById('char-zone'), document.getElementById('panel')];
+
+  function checkLeave() {
+    setTimeout(() => {
+      // No desactivar si el panel está abierto (necesitamos capturar clic-fuera)
+      if (!chatOpen && !uiZones.some(el => el.matches(':hover'))) {
+        window.gema.disableMouse();
+      }
+    }, 30);
+  }
+
+  uiZones.forEach(el => {
+    el.addEventListener('mouseenter', () => window.gema.enableMouse());
+    el.addEventListener('mouseleave', checkLeave);
+  });
+
+  // Clic fuera del panel → cerrar y volver click-through
+  document.addEventListener('mousedown', e => {
+    if (!chatOpen) return;
+    const panel = document.getElementById('panel');
+    const charZone = document.getElementById('char-zone');
+    if (!panel.contains(e.target) && !charZone.contains(e.target)) {
+      toggle(); // cierra el panel
+      // Si el mouse ya salió de las zonas UI, vuelve a transparente
+      setTimeout(() => {
+        if (!uiZones.some(el => el.matches(':hover'))) {
+          window.gema.disableMouse();
+        }
+      }, 50);
+    }
+  });
+
+  /* Drag */
+  let dragging=false, sm={}, sw={};
+  const cw = document.getElementById('cw');
+  cw.addEventListener('mousedown', async e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    sm = { x: e.screenX, y: e.screenY };
+    const p = await window.gema.getWinPos();
+    sw = { x: p[0], y: p[1] };
+    e.stopPropagation();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    window.gema.dragWindow({ x: sw.x + e.screenX - sm.x, y: sw.y + e.screenY - sm.y });
+  });
+  document.addEventListener('mouseup', () => dragging = false);
+
+  /* Toggle chat */
+  let ct;
+  cw.addEventListener('click', () => { clearTimeout(ct); ct = setTimeout(toggle, 160); });
+  document.getElementById('cc').addEventListener('click', toggle);
+
+  function toggle() {
+    chatOpen = !chatOpen;
+    document.getElementById('panel').classList.toggle('off', !chatOpen);
+    if (chatOpen) {
+      window.gema.enableMouse(); // captura toda la ventana para detectar clic-fuera
+      if (!inited) { inited=true; addMsg('a', GREET); speak(GREET); }
+      setTimeout(() => document.getElementById('ti').focus(), 130);
+    } else {
+      if (synth) synth.cancel();
+      wave(false);
+      // Volver a click-through si el mouse no está sobre las zonas UI
+      setTimeout(() => {
+        if (!uiZones.some(el => el.matches(':hover'))) {
+          window.gema.disableMouse();
+        }
+      }, 80);
+    }
+  }
+
+  async function send() {
+    const el = document.getElementById('ti');
+    const txt = el.value.trim(); if (!txt) return;
+    el.value = '';
+    addMsg('u', txt);
+    hist.push({ role:'user', content:txt });
+    const tp = typing();
+    try {
+      let reply;
+      if (BACKEND) {
+        const r = await fetch(BACKEND + '/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message:txt, history:hist.slice(-10) }) });
+        reply = (await r.json()).response;
+      } else if (ANT_KEY) {
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method:'POST',
+          headers:{ 'x-api-key':ANT_KEY, 'anthropic-version':'2023-06-01', 'content-type':'application/json' },
+          body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:512, system:SYSTEM, messages:hist })
+        });
+        reply = (await r.json()).content?.[0]?.text;
+      }
+      tp.remove();
+      reply = reply || '⚠ Añade tu anthropicApiKey en config.json.';
+      hist.push({ role:'assistant', content:reply });
+      addMsg('a', reply); speak(reply);
+    } catch(e) { tp.remove(); addMsg('a', '⚠ Error de conexión.'); }
+  }
+
+  document.getElementById('snd').addEventListener('click', send);
+  document.getElementById('ti').addEventListener('keydown', e => { if(e.key==='Enter') send(); });
+
+  function addMsg(cls, txt) {
+    const c = document.getElementById('msgs');
+    const d = document.createElement('div'); d.className='m '+cls; d.textContent=txt;
+    c.appendChild(d); c.scrollTop=c.scrollHeight; return d;
+  }
+  function typing() {
+    const c = document.getElementById('msgs');
+    const d = document.createElement('div'); d.className='typ';
+    d.innerHTML='<div class="d"></div><div class="d"></div><div class="d"></div>';
+    c.appendChild(d); c.scrollTop=c.scrollHeight; return d;
+  }
+  function wave(on) {
+    document.getElementById('char-canvas').classList.toggle('talking', on);
+    if (window._gemaTalkAnim) window._gemaTalkAnim(on);
+  }
+
+  async function speak(text) {
+    if (XI_KEY && XI_VOICE) {
+      try {
+        const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${XI_VOICE}`, {
+          method:'POST', headers:{'xi-api-key':XI_KEY,'Content-Type':'application/json'},
+          body:JSON.stringify({ text, model_id:'eleven_multilingual_v2', voice_settings:{stability:.5,similarity_boost:.75} })
+        });
+        if (r.ok) {
+          const url = URL.createObjectURL(await r.blob());
+          const a = new Audio(url);
+          wave(true);
+          a.onended = a.onerror = () => { wave(false); URL.revokeObjectURL(url); };
+          a.play(); return;
+        }
+      } catch(e) {}
+    }
+    if (!synth) return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='es-ES'; u.rate=1.0; u.pitch=1.08;
+    const vv = synth.getVoices();
+    const v = vv.find(x=>x.lang.startsWith('es')&&/female|paulina|monica|lucia/i.test(x.name)) || vv.find(x=>x.lang.startsWith('es')) || null;
+    if (v) u.voice = v;
+    u.onstart=()=>wave(true); u.onend=u.onerror=()=>wave(false);
+    synth.speak(u);
+  }
+
+  // Micrófono: modo ConvAI (voz tiempo real) o modo STT clásico
+  document.getElementById('mic').addEventListener('click', () => {
+    if (XI_KEY && XI_AGENT) {
+      // ── Modo ElevenLabs Conversational AI ──
+      startConvAI();
+      return;
+    }
+    // ── Modo STT clásico (SpeechRecognition + Anthropic) ──
+    if (!rec) {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { addMsg('a','⚠ Voz no disponible en este sistema.'); return; }
+      rec = new SR(); rec.lang='es-ES'; rec.interimResults=false;
+      rec.onresult = e => { document.getElementById('ti').value = e.results[0][0].transcript; send(); };
+      rec.onend = rec.onerror = () => { recOn=false; const b=document.getElementById('mic'); b.classList.remove('on'); b.textContent='🎤'; };
+    }
+    if (recOn) { rec.stop(); }
+    else { if(synth)synth.cancel(); rec.start(); recOn=true; const b=document.getElementById('mic'); b.classList.add('on'); b.textContent='⏹'; }
+  });
+
+  // Indicar modo al abrir panel por primera vez
+  if (XI_KEY && XI_AGENT) {
+    document.getElementById('mic').title = 'Iniciar conversación de voz con GEMA';
+  }
+
+  document.getElementById('quit').addEventListener('click', () => window.gema.quit());
+  if(synth){synth.getVoices();synth.addEventListener('voiceschanged',()=>synth.getVoices());}
+})();
+</script>
+</body>
+</html>

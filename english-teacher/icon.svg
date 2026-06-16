@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="orb">
+      <circle cx="256" cy="256" r="172"/>
+    </clipPath>
+    <radialGradient id="g1" cx="38%" cy="34%" r="66%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#50a0ff" stop-opacity=".92"/>
+      <stop offset="100%" stop-color="#50a0ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="66%" cy="68%" r="56%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#7040ef" stop-opacity=".7"/>
+      <stop offset="100%" stop-color="#7040ef" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g3" cx="32%" cy="27%" r="44%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity=".17"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#102060" stop-opacity=".8"/>
+      <stop offset="100%" stop-color="#000008" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- App background -->
+  <rect width="512" height="512" rx="115" fill="#00010e"/>
+
+  <!-- Ambient glow -->
+  <circle cx="256" cy="256" r="230" fill="url(#glow)"/>
+
+  <!-- Orb base -->
+  <circle cx="256" cy="256" r="172" fill="#010718"/>
+
+  <!-- Aurora layers inside orb -->
+  <g clip-path="url(#orb)">
+    <rect width="512" height="512" fill="url(#g1)"/>
+    <rect width="512" height="512" fill="url(#g2)"/>
+    <rect width="512" height="512" fill="url(#g3)"/>
+  </g>
+
+  <!-- Orb rim -->
+  <circle cx="256" cy="256" r="172" fill="none" stroke="#5090ff" stroke-width="2" opacity=".75"/>
+  <circle cx="256" cy="256" r="178" fill="none" stroke="#3060c0" stroke-width="1" opacity=".25"/>
+
+  <!-- Orbiting particle dots -->
+  <g fill="#7ab8ff" opacity=".55">
+    <circle cx="256" cy="72"  r="3"/>
+    <circle cx="390" cy="122" r="2.5"/>
+    <circle cx="440" cy="256" r="3"/>
+    <circle cx="390" cy="390" r="2.5"/>
+    <circle cx="256" cy="440" r="3"/>
+    <circle cx="122" cy="390" r="2.5"/>
+    <circle cx="72"  cy="256" r="3"/>
+    <circle cx="122" cy="122" r="2.5"/>
+  </g>
+
+  <!-- Subtle D lettermark -->
+  <text x="256" y="300"
+        font-family="SF Pro Display,Segoe UI,Arial,sans-serif"
+        font-size="130" font-weight="900" letter-spacing="-4"
+        fill="rgba(255,255,255,.1)"
+        text-anchor="middle">D</text>
+</svg>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title>GEMA — Configuración</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  width:480px;height:820px;
+  background:transparent!important;
+  overflow:hidden;
+  font-family:'Segoe UI',sans-serif;
+  -webkit-user-select:none;user-select:none;
+}
+#root{
+  width:480px;height:820px;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:14px;
+}
+#card{
+  width:440px;
+  background:rgba(2,4,18,.97);
+  border:1px solid rgba(60,140,255,.35);
+  border-radius:22px;
+  padding:28px 28px 22px;
+  box-shadow:0 24px 70px rgba(0,0,0,.88),0 0 60px rgba(40,100,255,.1);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.logo img{width:50px;height:50px;border-radius:50%;object-fit:contain;filter:drop-shadow(0 0 14px rgba(80,160,255,.8))}
+.logo-text h1{font-size:18px;font-weight:800;color:#E8EDF5;letter-spacing:.5px}
+.logo-text p{font-size:11px;color:#5ab4ff;margin-top:2px}
+h2{font-size:14px;font-weight:600;color:#C4D8FF;margin-bottom:6px}
+p.desc{font-size:12px;color:#667788;line-height:1.55;margin-bottom:18px}
+label{display:block;font-size:11px;font-weight:600;color:#5ab4ff;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+input{
+  width:100%;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(60,140,255,.25);
+  border-radius:11px;
+  padding:10px 14px;
+  color:#E8EDF5;font-size:13px;font-family:inherit;
+  outline:none;transition:border-color .2s;
+  margin-bottom:14px;
+}
+input:focus{border-color:rgba(80,160,255,.55)}
+input::placeholder{color:#3a4455}
+.hint{font-size:11px;color:#445566;margin-bottom:18px;line-height:1.5}
+.hint a{color:#5ab4ff;text-decoration:none}
+button{
+  width:100%;padding:12px;
+  background:linear-gradient(135deg,rgba(60,120,255,.3),rgba(40,80,200,.2));
+  border:1px solid rgba(80,160,255,.45);
+  border-radius:12px;
+  color:#E8EDF5;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  letter-spacing:.3px;
+}
+button:hover{background:linear-gradient(135deg,rgba(80,150,255,.4),rgba(60,100,220,.3));border-color:rgba(100,180,255,.65)}
+button:disabled{opacity:.4;cursor:default}
+#err{font-size:12px;color:#FF2D55;margin-top:10px;text-align:center;min-height:18px}
+#quit{
+  position:fixed;top:6px;right:6px;
+  width:20px;height:20px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:5px;color:rgba(255,255,255,.22);
+  cursor:pointer;font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+#quit:hover{background:rgba(255,45,85,.14);border-color:rgba(255,45,85,.4);color:#FF2D55}
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="card">
+    <div class="logo">
+      <img src="assets/gema_char.png" alt="GEMA"/>
+      <div class="logo-text">
+        <h1>GEMA AI</h1>
+        <p>Agente Holográfico de Trading</p>
+      </div>
+    </div>
+
+    <h2>Primera configuración</h2>
+    <p class="desc">Para activar la inteligencia de GEMA necesitas una clave de Anthropic (gratuita para empezar).</p>
+
+    <label>Clave de Anthropic (API Key)</label>
+    <input id="key-input" type="password" placeholder="sk-ant-..." autocomplete="off"/>
+
+    <div class="hint">
+      Obtén tu clave gratis en <a href="#" onclick="open('https://console.anthropic.com/')">console.anthropic.com</a><br/>
+      (Registro gratuito → API Keys → Create Key)
+    </div>
+
+    <label for="xi-key">ElevenLabs — Voz + Agente conversacional (opcional)</label>
+    <input id="xi-key" type="password" placeholder="API Key de ElevenLabs (opcional)" autocomplete="off"/>
+    <input id="xi-voice" type="text" placeholder="Voice ID de la voz clonada (opcional)" autocomplete="off"/>
+    <input id="xi-agent" type="text" placeholder="Agent ID conversacional (opcional)" autocomplete="off"/>
+    <div class="hint" style="margin-top:-8px">
+      Agent ID: elevenlabs.io → Conversational AI → tu agente → Settings → Agent ID<br/>
+      Con Agent ID activo: GEMA responde en tiempo real por voz (sin texto)
+    </div>
+
+    <button id="save-btn" onclick="save()">✨ Activar GEMA</button>
+    <div id="err"></div>
+  </div>
+</div>
+<button id="quit" onclick="window.gema.quit()">✕</button>
+
+<script>
+// Make elements clickable
+document.getElementById('root').addEventListener('mouseenter', () => window.gema.enableMouse());
+document.getElementById('root').addEventListener('mouseleave', () => window.gema.disableMouse());
+
+async function save() {
+  const key = document.getElementById('key-input').value.trim();
+  const xiKey   = document.getElementById('xi-key').value.trim();
+  const xiVoice = document.getElementById('xi-voice').value.trim();
+  const xiAgent = document.getElementById('xi-agent').value.trim();
+  const btn = document.getElementById('save-btn');
+  const err = document.getElementById('err');
+
+  if (!key || !key.startsWith('sk-ant-')) {
+    err.textContent = '⚠ La clave debe empezar por  sk-ant-';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  err.textContent = '';
+
+  // Quick verify: call Anthropic
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] })
+    });
+    if (!r.ok) throw new Error('Invalid key');
+    window.gema.saveConfig({ anthropicApiKey: key, elevenLabsApiKey: xiKey, elevenLabsVoiceId: xiVoice, elevenLabsAgentId: xiAgent });
+  } catch(e) {
+    err.textContent = '⚠ Clave inválida. Comprueba que la copiaste bien.';
+    btn.disabled = false;
+    btn.textContent = '✨ Activar GEMA';
+  }
+}
+</script>
+</body>
+</html>

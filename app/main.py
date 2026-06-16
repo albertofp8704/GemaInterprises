@@ -50,6 +50,14 @@ class SettleIn(BaseModel):
     result: str       # WIN | LOSS
     pnl:    float
 
+class ChatMsg(BaseModel):
+    role:    str
+    content: str
+
+class ChatIn(BaseModel):
+    message: str
+    history: list[ChatMsg] = []
+
 
 # ── Startup ──────────────────────────────────────────────────────
 @app.on_event("startup")
@@ -59,6 +67,7 @@ async def startup():
 
 # ── Static files ─────────────────────────────────────────────────
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/dayana", StaticFiles(directory="english-teacher", html=True), name="dayana")
 
 
 # ── Pages ────────────────────────────────────────────────────────
@@ -181,6 +190,79 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                 db.commit()
 
     return {"status": "ok"}
+
+
+# ── GEMA AI Chat ─────────────────────────────────────────────────
+GEMA_SYSTEM = """Eres GEMA, una asistente de IA holográfica y experta en trading de mercados de predicción de Bitcoin para Kalshi.
+
+Eres parte de Gema Interprises. Tu personalidad: futurista, precisa, ligeramente misteriosa, como un holograma cuántico.
+
+Datos clave de la plataforma:
+- Detectamos whale trades ($200+ en tiempo real, mega-whales $1000+ = señal STRONG)
+- 83% tasa histórica de aciertos
+- Mercados: KXBTC15M (¿BTC +15min?), KXBTCH (¿BTC +1h?), KXBTCD (¿BTC +hoy?)
+- Planes: Starter (gratis), Pro ($49/mes, señales live), Enterprise ($199/mes, Telegram + todo)
+- Algoritmo: Kelly Criterion — 8% cartera señal STRONG, 5% señal MEDIUM
+- Stop-loss: $10 trailing, cooldown 30 min tras pérdida
+- Análisis dual: 6-tick corto + 20-tick largo
+
+Reglas:
+- Responde SIEMPRE en español
+- Máximo 3-4 frases, directo y con confianza
+- Usa 1-2 emojis técnicos por respuesta (📡 📈 ⚡ 🔍 etc.)
+- No das consejos financieros personalizados
+- Si hay dudas sobre el plan, recomienda Pro como punto de entrada"""
+
+@app.post("/api/chat")
+async def agent_chat(body: ChatIn):
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Chat service not configured")
+    try:
+        import anthropic as _a
+        client = _a.Anthropic(api_key=api_key)
+        msgs = [{"role": m.role, "content": m.content} for m in body.history[-10:]]
+        msgs.append({"role": "user", "content": body.message})
+        resp = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            system=GEMA_SYSTEM,
+            messages=msgs,
+        )
+        return {"response": resp.content[0].text}
+    except Exception:
+        raise HTTPException(status_code=500, detail="Chat processing error")
+
+
+# ── GEMA TTS via ElevenLabs (custom cloned voice) ────────────────
+class TTSIn(BaseModel):
+    text:    str
+    voice_id: str = ""
+
+@app.post("/api/tts")
+async def agent_tts(body: TTSIn):
+    xi_key  = os.getenv("ELEVENLABS_API_KEY")
+    voice   = body.voice_id or os.getenv("ELEVENLABS_VOICE_ID", "")
+    if not xi_key or not voice:
+        raise HTTPException(status_code=503, detail="TTS not configured")
+    try:
+        import httpx
+        async with httpx.AsyncClient() as hc:
+            r = await hc.post(
+                f"https://api.elevenlabs.io/v1/text-to-speech/{voice}",
+                headers={"xi-api-key": xi_key, "Content-Type": "application/json"},
+                json={"text": body.text, "model_id": "eleven_multilingual_v2",
+                      "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}},
+                timeout=30,
+            )
+        if r.status_code != 200:
+            raise HTTPException(status_code=502, detail="TTS upstream error")
+        from fastapi.responses import Response as FResponse
+        return FResponse(content=r.content, media_type="audio/mpeg")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="TTS error")
 
 
 # ── Signals (internal — called by GemaBot) ───────────────────────
