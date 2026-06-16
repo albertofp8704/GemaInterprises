@@ -67,6 +67,7 @@ async def startup():
 
 # ── Static files ─────────────────────────────────────────────────
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/dayana", StaticFiles(directory="english-teacher", html=True), name="dayana")
 
 
 # ── Pages ────────────────────────────────────────────────────────
