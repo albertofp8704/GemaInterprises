@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"/>
+<title>GemaTeacher — Learn English</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#00010e"/>
+
+<!-- iOS / iPhone -->
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="GemaTeacher"/>
+<link rel="apple-touch-icon" href="icon-180.png"/>
+<link rel="apple-touch-startup-image" href="icon-512.png"/>
+
+<!-- Android / SEO -->
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="description" content="Learn English through immersive AI conversation — the sponge method"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  width:100%;height:100%;
+  background:#000;
+  overflow:hidden;
+  font-family:'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+
+/* ── Subtitles ── */
+#sub{
+  position:fixed;
+  bottom:160px;left:50%;transform:translateX(-50%);
+  width:min(500px,88vw);
+  text-align:center;
+  pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.sub-line{
+  display:inline-block;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:22px;
+  padding:8px 20px;
+  font-size:16px;line-height:1.5;
+  letter-spacing:.1px;
+  animation:sIn .25s ease both;
+  max-width:100%;
+}
+.sub-line.u{color:#7dd3fc;border:1px solid rgba(125,211,252,.15)}
+.sub-line.a{color:#f0f9ff;border:1px solid rgba(255,255,255,.1)}
+@keyframes sIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+
+/* ── Status label ── */
+#status{
+  position:fixed;
+  bottom:118px;left:50%;transform:translateX(-50%);
+  font-size:12px;color:rgba(255,255,255,.38);
+  letter-spacing:2.5px;text-transform:uppercase;
+  pointer-events:none;
+  transition:color .4s;
+}
+
+/* ── Tap button ── */
+#tap{
+  position:fixed;
+  bottom:max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px));left:50%;transform:translateX(-50%);
+  width:180px;height:52px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:26px;
+  color:rgba(255,255,255,.65);
+  font-size:14px;font-weight:500;letter-spacing:.5px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all .3s;
+}
+#tap:hover{
+  background:rgba(100,180,255,.1);
+  border-color:rgba(100,180,255,.4);
+  color:#fff;
+}
+#tap.active{
+  background:rgba(255,60,80,.08);
+  border-color:rgba(255,60,80,.35);
+  color:#fca5a5;
+}
+
+/* ── Top branding ── */
+#brand{
+  position:fixed;top:max(32px, env(safe-area-inset-top, 32px));left:50%;transform:translateX(-50%);
+  text-align:center;pointer-events:none;
+}
+#brand h1{
+  font-size:28px;font-weight:800;letter-spacing:3px;
+  background:linear-gradient(135deg,#fff 30%,#7dd3fc 70%,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+#brand p{
+  font-size:11px;color:rgba(255,255,255,.3);
+  letter-spacing:3px;text-transform:uppercase;margin-top:4px;
+}
+
+/* ── Setup overlay ── */
+#setup{
+  position:fixed;inset:0;
+  background:rgba(0,2,16,.96);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;
+}
+.scard{
+  width:min(360px,90vw);
+  text-align:center;
+  padding:0 8px;
+}
+.scard h1{
+  font-size:36px;font-weight:900;letter-spacing:4px;
+  background:linear-gradient(135deg,#fff,#7dd3fc,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.scard .tag{
+  font-size:11px;color:rgba(255,255,255,.35);
+  letter-spacing:3px;text-transform:uppercase;
+  margin-bottom:28px;
+}
+.scard input{
+  width:100%;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  padding:13px 16px;
+  color:#fff;font-size:14px;font-family:inherit;
+  outline:none;margin-bottom:10px;
+  transition:border-color .2s;
+}
+.scard input:focus{border-color:rgba(125,211,252,.45)}
+.scard input::placeholder{color:rgba(255,255,255,.2)}
+.scard .hint{
+  font-size:11px;color:rgba(255,255,255,.25);
+  margin-bottom:20px;line-height:1.6;
+}
+.scard button{
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,rgba(100,180,255,.25),rgba(120,80,255,.2));
+  border:1px solid rgba(125,211,252,.3);
+  border-radius:12px;
+  color:#fff;font-size:15px;font-weight:700;
+  cursor:pointer;letter-spacing:.5px;
+  transition:all .2s;
+}
+.scard button:hover{
+  background:linear-gradient(135deg,rgba(100,180,255,.35),rgba(120,80,255,.3));
+  border-color:rgba(125,211,252,.55);
+}
+#setup-err{font-size:12px;color:#fca5a5;margin-top:12px;min-height:18px}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div id="brand">
+  <h1>GemaTeacher</h1>
+  <p>English · Immersion Method</p>
+</div>
+
+<div id="sub"></div>
+<div id="status">Tap to start</div>
+<button id="tap">
+  <span id="tap-icon">◉</span>
+  <span id="tap-label">Start speaking</span>
+</button>
+
+<!-- Setup -->
+<div id="setup">
+  <div class="scard">
+    <h1>GemaTeacher</h1>
+    <div class="tag">English Immersion AI</div>
+    <input id="inp-agent" placeholder="ElevenLabs Agent ID" autocomplete="off" spellcheck="false"/>
+    <input id="inp-key" type="password" placeholder="API Key (leave empty if agent is public)" autocomplete="off"/>
+    <div class="hint">
+      Create your agent at elevenlabs.io → Conversational AI<br/>
+      Set it to public to skip the API key
+    </div>
+    <button onclick="doSetup()">Start learning →</button>
+    <div id="setup-err"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   CANVAS ANIMATION — Holographic Orb
+   ══════════════════════════════════════════════════════════ */
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+let W, H, cx, cy, R;
+
+function resize() {
+  W = cv.width  = window.innerWidth;
+  H = cv.height = window.innerHeight;
+  cx = W / 2;
+  cy = H * 0.48;  // slightly above center
+  R  = Math.min(W, H) * 0.21;
+  initParticles();
+}
+window.addEventListener('resize', resize);
+
+// ── State ──────────────────────────────────────────────────
+let appState = 'idle';  // idle | listening | speaking | thinking
+let t = 0;
+let micAmp = 0, micSmooth = 0;
+let particles = [];
+let ripples   = [];
+
+// ── Color palettes per state ──
+const PAL = {
+  idle:      { a: [40, 120, 255], b: [80, 30, 220],  c: [0, 10, 80]   },
+  listening: { a: [0,  210, 255], b: [0,  100, 200], c: [0, 40, 100]  },
+  speaking:  { a: [160, 60, 255], b: [80,  0, 200],  c: [30, 0, 80]   },
+  thinking:  { a: [255,190, 50],  b: [200, 80,  0],  c: [60, 20, 0]   },
+};
+let curC = { ...PAL.idle };
+let tgtC = { ...PAL.idle };
+
+function lerpC(a, b, f) {
+  return {
+    a: a.a.map((v,i) => v + (b.a[i]-v)*f),
+    b: a.b.map((v,i) => v + (b.b[i]-v)*f),
+    c: a.c.map((v,i) => v + (b.c[i]-v)*f),
+  };
+}
+function rgba(arr, alpha) {
+  return `rgba(${arr.map(v=>Math.round(v)).join(',')},${alpha})`;
+}
+
+function setAppState(s) {
+  appState = s;
+  tgtC = PAL[s];
+  const labels = {
+    idle:      'Tap to start',
+    listening: 'Listening…',
+    speaking:  'GemaTeacher is speaking',
+    thinking:  'Thinking…',
+  };
+  document.getElementById('status').textContent = labels[s] || '';
+}
+
+// ── Particles ──────────────────────────────────────────────
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < 90; i++) {
+    particles.push({
+      angle:  (i / 90) * Math.PI * 2,
+      speed:  0.0006 + Math.random() * 0.001,
+      orbit:  R * (1.3 + Math.random() * 0.5),
+      size:   0.8 + Math.random() * 2.2,
+      tilt:   0.28 + Math.random() * 0.18,  // perspective flatness
+    });
+  }
+}
+
+// ── Main draw loop ─────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  t += 0.016;
+  curC = lerpC(curC, tgtC, 0.035);
+  micSmooth += (micAmp - micSmooth) * 0.12;
+  const amp   = micSmooth;
+  const pulse = 1 + Math.sin(t * 1.4) * 0.018  // idle breath
+              + (appState === 'speaking' ? Math.sin(t * 7) * 0.04 : 0)
+              + amp * 0.28;
+
+  const oy = cy + Math.sin(t * 0.55) * 7;  // float
+
+  // ── Background deep glow
+  const bg = ctx.createRadialGradient(cx, oy, R*0.5, cx, oy, Math.max(W,H)*0.9);
+  bg.addColorStop(0, rgba(curC.b, 0.22));
+  bg.addColorStop(0.5, rgba(curC.c, 0.12));
+  bg.addColorStop(1, 'rgba(0,0,8,1)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Outer halo layers (4 rings, softening outward)
+  for (let l = 4; l >= 0; l--) {
+    const lr = R * (1.55 + l * 0.55) * pulse;
+    const g  = ctx.createRadialGradient(cx, oy, 0, cx, oy, lr);
+    g.addColorStop(0,   rgba(curC.a, (0.07 - l*0.012) * (1 + amp * 0.5)));
+    g.addColorStop(0.6, rgba(curC.b, 0.02));
+    g.addColorStop(1,   'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(cx, oy, lr, 0, Math.PI*2); ctx.fill();
+  }
+
+  // ── Orb interior (clipped)
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, oy, R * pulse, 0, Math.PI*2); ctx.clip();
+
+  // Dark base
+  ctx.fillStyle = '#010418';
+  ctx.fillRect(cx-R*2, oy-R*2, R*4, R*4);
+
+  // Aurora blobs (3 rotating gradient puddles)
+  const blobs = [
+    { dx: Math.cos(t*.38)*R*.42, dy: Math.sin(t*.55)*R*.3,  color: curC.a, r: R*.95, alpha: .6 },
+    { dx: Math.cos(t*.72+2)*R*.5,dy: Math.sin(t*.33+1)*R*.4,color: curC.b, r: R*.85, alpha: .45},
+    { dx: Math.cos(t*.22+4)*R*.3,dy: Math.sin(t*.85+3)*R*.3,color: [220,240,255],   r: R*.6,  alpha: .18},
+  ];
+  ctx.globalCompositeOperation = 'screen';
+  blobs.forEach(b => {
+    const g = ctx.createRadialGradient(cx+b.dx, oy+b.dy, 0, cx+b.dx, oy+b.dy, b.r);
+    g.addColorStop(0, rgba(b.color, b.alpha + amp*.25));
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(cx-R*2, oy-R*2, R*4, R*4);
+  });
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Inner vignette edge (glass edge)
+  const edge = ctx.createRadialGradient(cx, oy, R*.5, cx, oy, R);
+  edge.addColorStop(0, 'transparent');
+  edge.addColorStop(1, 'rgba(0,2,24,.75)');
+  ctx.fillStyle = edge;
+  ctx.fillRect(cx-R*2, oy-R*2, R*4, R*4);
+
+  ctx.restore();
+
+  // ── Sphere border (bright rim)
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, oy, R * pulse, 0, Math.PI*2);
+  const rim = ctx.createLinearGradient(cx-R, oy-R, cx+R, oy+R);
+  rim.addColorStop(0,   rgba(curC.a, 1));
+  rim.addColorStop(0.45,rgba([255,255,255], .85));
+  rim.addColorStop(1,   rgba(curC.b, .7));
+  ctx.strokeStyle = rim;
+  ctx.lineWidth   = 1.8;
+  ctx.stroke();
+  ctx.restore();
+
+  // ── Second faint ring (depth)
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, oy, R * pulse * 1.06, 0, Math.PI*2);
+  ctx.strokeStyle = rgba(curC.a, 0.12);
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  ctx.restore();
+
+  // ── Waveform ring (listening — reacts to mic)
+  if (appState === 'listening' || amp > 0.015) {
+    const segs = 160;
+    ctx.save();
+    ctx.beginPath();
+    for (let i = 0; i <= segs; i++) {
+      const θ = (i / segs) * Math.PI * 2;
+      const noise = Math.sin(θ * 9 + t * 5.5) * amp * R * .28
+                  + Math.sin(θ * 6 - t * 3.2) * amp * R * .14
+                  + Math.sin(θ * 14 + t * 8)  * amp * R * .07;
+      const pr = R * pulse * 1.14 + noise;
+      const px = cx + Math.cos(θ) * pr;
+      const py = oy + Math.sin(θ) * pr;
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = rgba(curC.a, .35 + amp * .55);
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Expanding ripples (speaking)
+  ripples = ripples.filter(r => r.o > 0.01);
+  ripples.forEach(r => {
+    ctx.beginPath(); ctx.arc(cx, oy, r.r, 0, Math.PI*2);
+    ctx.strokeStyle = rgba(curC.a, r.o * .6);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    r.r += R * .014;
+    r.o *= .955;
+  });
+
+  // ── Orbiting particles (perspective ring)
+  const pMult = appState === 'listening' ? 3.5 : appState === 'speaking' ? 2.5 : 1;
+  particles.forEach(p => {
+    p.angle += p.speed * pMult;
+    const cos = Math.cos(p.angle);
+    const sin = Math.sin(p.angle);
+    const px  = cx + cos * p.orbit;
+    const py  = oy + sin * p.orbit * p.tilt;
+    const z   = (sin + 1) / 2;  // 0=back, 1=front
+    const alpha = 0.08 + z * .65;
+    const sz  = p.size * (.35 + z * .65);
+    ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI*2);
+    ctx.fillStyle = rgba(curC.a, alpha);
+    ctx.fill();
+  });
+
+  requestAnimationFrame(draw);
+}
+
+requestAnimationFrame(draw);
+
+// Spawn ripples when speaking
+setInterval(() => {
+  if (appState === 'speaking') ripples.push({ r: R * .88, o: .75, });
+}, 550);
+
+
+/* ══════════════════════════════════════════════════════════
+   SETUP
+   ══════════════════════════════════════════════════════════ */
+let AGENT_ID = localStorage.getItem('dayana_agent') || '';
+let XI_KEY   = localStorage.getItem('dayana_key')   || '';
+
+function doSetup() {
+  const agent = document.getElementById('inp-agent').value.trim();
+  const key   = document.getElementById('inp-key').value.trim();
+  if (!agent) {
+    document.getElementById('inp-agent').style.borderColor = '#fca5a5';
+    document.getElementById('setup-err').textContent = 'Agent ID is required';
+    return;
+  }
+  localStorage.setItem('dayana_agent', agent);
+  if (key) localStorage.setItem('dayana_key', key);
+  AGENT_ID = agent; XI_KEY = key;
+  document.getElementById('setup').style.display = 'none';
+}
+
+// Auto-hide if already configured
+if (AGENT_ID) document.getElementById('setup').style.display = 'none';
+
+// Long-press status label to reset config
+let resetTm;
+document.getElementById('status').addEventListener('pointerdown', () => {
+  resetTm = setTimeout(() => { localStorage.clear(); location.reload(); }, 3000);
+});
+['pointerup','pointercancel'].forEach(e =>
+  document.getElementById('status').addEventListener(e, () => clearTimeout(resetTm))
+);
+
+
+/* ══════════════════════════════════════════════════════════
+   SPONGE METHOD SYSTEM PROMPT
+   ══════════════════════════════════════════════════════════ */
+const PROMPT = `You are GemaTeacher, a friendly English conversation partner who teaches through the "sponge method" — the same way children naturally absorb a language.
+
+YOUR CORE RULES:
+1. ONLY speak English. Never use Spanish or any other language.
+2. NEVER explain grammar rules, conjugations, tenses, or linguistic concepts.
+3. If the user speaks Spanish or makes errors, understand them naturally — then reply in simple English without pointing out mistakes.
+4. When the user makes a grammatical error, naturally weave the correct form into your next sentence without drawing attention to it.
+5. Keep responses SHORT — 1 to 3 sentences maximum. Favor brevity.
+6. Always end with a natural follow-up question to keep the conversation flowing.
+7. Start extremely simple (A1 level) — short sentences, common words. Gradually increase complexity only when the user's responses show they are ready.
+8. Be warm, encouraging, and patient — like a native speaker friend, not a teacher.
+9. Use everyday relatable topics: food, weather, weekend plans, family, hobbies, travel, work, movies, music.
+10. Naturally repeat and vary useful phrases throughout the conversation so they stick.
+
+REMEMBER: You are a friend, not a textbook. The conversation IS the lesson.`;
+
+
+/* ══════════════════════════════════════════════════════════
+   ELEVENLABS CONVAI
+   ══════════════════════════════════════════════════════════ */
+let ws         = null;
+let micStream  = null;
+let micCtx     = null;
+let analyser   = null;
+let playCtx    = null;
+let audioQueue = [];
+let playing    = false;
+let convActive = false;
+
+function addSub(role, text) {
+  const box = document.getElementById('sub');
+  const d = document.createElement('div');
+  d.className = `sub-line ${role}`;
+  d.textContent = text;
+  box.appendChild(d);
+  while (box.children.length > 2) box.removeChild(box.firstChild);
+  setTimeout(() => d.remove(), 7000);
+}
+
+async function startConv() {
+  if (!AGENT_ID) { document.getElementById('setup').style.display = 'flex'; return; }
+  setAppState('thinking');
+  setTapActive(true);
+  convActive = true;
+
+  try {
+    let wsUrl;
+    if (XI_KEY) {
+      const r = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${AGENT_ID}`,
+        { headers: { 'xi-api-key': XI_KEY } }
+      );
+      const d = await r.json();
+      if (!d.signed_url) throw new Error('Could not get signed URL');
+      wsUrl = d.signed_url;
+    } else {
+      // Public agent (no API key needed)
+      wsUrl = `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${AGENT_ID}`;
+    }
+
+    ws = new WebSocket(wsUrl);
+    playCtx    = new AudioContext();
+    audioQueue = [];
+    playing    = false;
+
+    ws.onopen = async () => {
+      // Override agent with sponge method prompt
+      ws.send(JSON.stringify({
+        type: 'conversation_initiation_client_data',
+        conversation_config_override: {
+          agent: { prompt: { prompt: PROMPT } }
+        }
+      }));
+      setAppState('listening');
+
+      // Microphone
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+      });
+      micCtx  = new AudioContext({ sampleRate: 16000 });
+      const src = micCtx.createMediaStreamSource(micStream);
+
+      analyser = micCtx.createAnalyser();
+      analyser.fftSize = 256;
+      src.connect(analyser);
+
+      const proc = micCtx.createScriptProcessor(2048, 1, 1);
+      proc.onaudioprocess = e => {
+        if (ws?.readyState !== WebSocket.OPEN) return;
+        // Mic amplitude for orb waveform
+        const fd = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(fd);
+        micAmp = fd.reduce((a,b) => a+b, 0) / fd.length / 128;
+        // PCM16 encode
+        const f32 = e.inputBuffer.getChannelData(0);
+        const i16 = new Int16Array(f32.length);
+        for (let i=0; i<f32.length; i++)
+          i16[i] = Math.max(-32768, Math.min(32767, f32[i]*32768));
+        let bin = '';
+        new Uint8Array(i16.buffer).forEach(b => bin += String.fromCharCode(b));
+        ws.send(JSON.stringify({ user_audio_chunk: btoa(bin) }));
+      };
+      src.connect(proc);
+      proc.connect(micCtx.destination);
+    };
+
+    ws.onmessage = ev => {
+      const msg = JSON.parse(ev.data);
+      switch (msg.type) {
+        case 'audio': {
+          setAppState('speaking');
+          const bytes = Uint8Array.from(atob(msg.audio_event.audio_base_64), c => c.charCodeAt(0));
+          playCtx.decodeAudioData(bytes.buffer.slice(0))
+            .then(buf => { audioQueue.push(buf); drain(); })
+            .catch(() => {});
+          break;
+        }
+        case 'agent_response':
+          addSub('a', msg.agent_response_event.agent_response);
+          break;
+        case 'user_transcript':
+          addSub('u', msg.user_transcription_event.user_transcript);
+          setAppState('listening');
+          break;
+        case 'interruption':
+          audioQueue = []; playing = false;
+          setAppState('listening');
+          break;
+        case 'ping':
+          ws.send(JSON.stringify({ type: 'pong', event_id: msg.ping_event.event_id }));
+          break;
+      }
+    };
+
+    ws.onclose = () => stopConv();
+    ws.onerror = () => { addSub('a', 'Connection error — check your Agent ID'); stopConv(); };
+
+  } catch(err) {
+    addSub('a', `Error: ${err.message}`);
+    stopConv();
+  }
+}
+
+function drain() {
+  if (playing || audioQueue.length === 0 || !playCtx) return;
+  playing = true;
+  const src = playCtx.createBufferSource();
+  src.buffer = audioQueue.shift();
+  src.connect(playCtx.destination);
+  src.onended = () => {
+    playing = false;
+    micAmp  = 0;
+    if (audioQueue.length) drain();
+    else setAppState('listening');
+  };
+  src.start();
+}
+
+function stopConv() {
+  ws?.close(); ws = null;
+  micStream?.getTracks().forEach(t => t.stop()); micStream = null;
+  micCtx?.close();  micCtx  = null;
+  playCtx?.close(); playCtx = null;
+  audioQueue = []; playing = false; micAmp = 0; analyser = null;
+  convActive = false;
+  setAppState('idle');
+  setTapActive(false);
+}
+
+function setTapActive(on) {
+  const btn = document.getElementById('tap');
+  const ico = document.getElementById('tap-icon');
+  const lbl = document.getElementById('tap-label');
+  if (on) {
+    btn.classList.add('active');
+    ico.textContent = '◼';
+    lbl.textContent = 'Stop';
+  } else {
+    btn.classList.remove('active');
+    ico.textContent = '◉';
+    lbl.textContent = 'Start speaking';
+  }
+}
+
+document.getElementById('tap').addEventListener('click', () => {
+  convActive ? stopConv() : startConv();
+});
+
+// Also allow tapping the orb area on mobile
+cv.addEventListener('click', e => {
+  // Only if tap area not clicked
+  if (e.clientY > H * 0.75) return;  // bottom area = button zone
+  if (!AGENT_ID) { document.getElementById('setup').style.display = 'flex'; return; }
+  convActive ? stopConv() : startConv();
+});
+
+resize();
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

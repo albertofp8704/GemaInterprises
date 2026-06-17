@@ -1,4 +1,4 @@
-name: Deploy DAYANA to GitHub Pages
+name: Deploy GemaTeacher to GitHub Pages
 
 on:
   push:

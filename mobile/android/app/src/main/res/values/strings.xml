@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GemaTeacher</string>
+    <string name="title_activity_main">GemaTeacher</string>
+    <string name="package_name">com.gemainterprises.gemateacher</string>
+    <string name="custom_url_scheme">com.gemainterprises.gemateacher</string>
+</resources>
