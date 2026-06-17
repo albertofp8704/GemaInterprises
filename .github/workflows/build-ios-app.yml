@@ -30,13 +30,9 @@ jobs:
         working-directory: mobile
         run: npx cap sync ios
 
-      - name: Install CocoaPods dependencies
-        working-directory: mobile/ios/App
-        run: pod install
-
       - name: Build for iOS Simulator (unsigned)
         working-directory: mobile/ios/App
         run: |
-          xcodebuild -workspace App.xcworkspace -scheme App \
+          xcodebuild -project App.xcodeproj -target App \
             -sdk iphonesimulator -configuration Debug \
             CODE_SIGNING_ALLOWED=NO build
