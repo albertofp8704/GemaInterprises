@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guiones IA — Gema Interprises</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#03060f;--bg2:#070c1a;--bg3:#0b1120;--border:rgba(255,255,255,.07);--accent:#00C805;--gold:#C9A84C;--red:#FF2D55;--text:#E8EDF5;--muted:#556070;--card:rgba(255,255,255,.025)}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+    nav{background:rgba(3,6,15,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:50}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+    .logo-mark{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#00C805,#C9A84C);display:flex;align-items:center;justify-content:center;font-size:15px}
+    .logo-name{font-size:15px;font-weight:800;letter-spacing:-.03em}
+    .nav-right{display:flex;align-items:center;gap:16px}
+    .nav-link{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s}
+    .nav-link:hover{color:var(--text)}
+    .plan-badge{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:100px}
+    .plan-free{background:rgba(255,255,255,.06);color:var(--muted)}
+    .plan-pro{background:rgba(0,200,5,.12);color:var(--accent);border:1px solid rgba(0,200,5,.25)}
+    .plan-enterprise{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.25)}
+    .user-email{font-size:13px;color:var(--muted)}
+    .btn-logout{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
+    .btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+    .main{flex:1;padding:32px 24px;max-width:900px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:24px}
+
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px}
+    .card h2{font-size:16px;font-weight:700;margin-bottom:16px}
+
+    .usage-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .usage-bar{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;min-width:160px}
+    .usage-fill{height:100%;background:linear-gradient(90deg,#00C805,#C9A84C);transition:width .3s}
+    .usage-text{font-size:13px;color:var(--muted);white-space:nowrap}
+
+    .upgrade-card{background:linear-gradient(135deg,rgba(0,200,5,.08),rgba(201,168,76,.06));border:1px solid rgba(201,168,76,.2);border-radius:14px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .upgrade-card p{font-size:13px;color:var(--muted)}
+    .btn-upgrade{background:linear-gradient(90deg,#00C805,#C9A84C);color:#000;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+
+    label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+    .field{margin-bottom:16px}
+    input[type=text],select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:8px;font-size:14px;font-family:inherit}
+    input[type=text]:focus,select:focus{outline:none;border-color:rgba(0,200,5,.4)}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media (max-width:600px){.grid-2{grid-template-columns:1fr}}
+    .btn-generate{width:100%;background:linear-gradient(90deg,#00C805,#C9A84C);color:#000;border:none;padding:14px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+    .btn-generate:hover{transform:translateY(-1px);box-shadow:0 0 30px rgba(0,200,5,.2)}
+    .btn-generate:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+    .error-msg{color:var(--red);font-size:13px;margin-top:10px;display:none}
+
+    .result-meta{display:flex;gap:16px;color:var(--muted);font-size:12px;margin-bottom:12px}
+    .script-box{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;line-height:1.7;white-space:pre-wrap;max-height:420px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:13px}
+    .result-actions{display:flex;gap:10px;margin-top:14px}
+    .btn-sm{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:7px;font-size:13px;cursor:pointer;transition:all .2s}
+    .btn-sm:hover{border-color:rgba(0,200,5,.4);color:var(--accent)}
+
+    .history-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;gap:12px}
+    .history-item:last-child{border-bottom:none}
+    .history-item:hover .history-title{color:var(--accent)}
+    .history-title{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .history-meta{font-size:12px;color:var(--muted);white-space:nowrap}
+    .empty{text-align:center;padding:32px;color:var(--muted);font-size:14px}
+
+    .loading{text-align:center;padding:32px;color:var(--muted)}
+    .spinner{display:inline-block;width:22px;height:22px;border:2px solid rgba(0,200,5,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <div class="logo-mark">⬡</div>
+      <div class="logo-name">Gema Interprises</div>
+    </a>
+    <div class="nav-right">
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+      <span class="user-email" id="user-email">—</span>
+      <span class="plan-badge plan-free" id="plan-badge">FREE</span>
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+
+  <div class="card">
+    <h2>📝 Guiones IA para canales faceless</h2>
+    <div class="usage-row">
+      <div class="usage-bar"><div class="usage-fill" id="usage-fill" style="width:0%"></div></div>
+      <span class="usage-text" id="usage-text">— / — guiones este mes</span>
+    </div>
+  </div>
+
+  <div class="upgrade-card" id="upgrade-cta" style="display:none">
+    <p>Has alcanzado el límite de guiones de tu plan este mes. Mejora para generar más.</p>
+    <button class="btn-upgrade" onclick="window.location.href='/dashboard'">Mejorar plan →</button>
+  </div>
+
+  <div class="card">
+    <h2>Generar guion</h2>
+    <div class="field">
+      <label>Título del vídeo</label>
+      <input type="text" id="f-title" placeholder="Ej: Lo que nadie te cuenta sobre el Imperio Romano" maxlength="200" />
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Nicho</label>
+        <select id="f-niche">
+          <option value="general">General</option>
+          <option value="historia">Historia</option>
+          <option value="true_crime">True Crime</option>
+          <option value="finanzas">Finanzas</option>
+          <option value="motivacion">Motivación</option>
+          <option value="misterio">Misterio y curiosidades</option>
+          <option value="ciencia">Ciencia y tecnología</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tono</label>
+        <select id="f-tone">
+          <option value="dramatico">Dramático</option>
+          <option value="urgente">Urgente / Breaking</option>
+          <option value="documental">Calmado / documental</option>
+          <option value="inspirador">Inspirador</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Duración objetivo</label>
+      <select id="f-minutes">
+        <option value="3">~3 min</option>
+        <option value="5" selected>~5 min</option>
+        <option value="8">~8 min</option>
+        <option value="12">~12 min</option>
+      </select>
+    </div>
+    <button class="btn-generate" id="btn-generate" onclick="generateScript()">Generar guion</button>
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+
+  <div class="card" id="result-card" style="display:none">
+    <h2>Resultado</h2>
+    <div class="result-meta">
+      <span id="result-words">— palabras</span>
+      <span id="result-duration">— min estimados</span>
+    </div>
+    <div class="script-box" id="result-content"></div>
+    <div class="result-actions">
+      <button class="btn-sm" onclick="copyScript()">📋 Copiar</button>
+      <button class="btn-sm" onclick="downloadScript()">⬇ Descargar .txt</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Historial</h2>
+    <div id="history-list"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+
+</div>
+
+<script>
+const token = localStorage.getItem('gema_token');
+if (!token) window.location.href = '/login';
+const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' });
+
+let currentScript = null;
+let scriptsCache = [];
+
+function logout() {
+  localStorage.removeItem('gema_token');
+  localStorage.removeItem('gema_user');
+  window.location.href = '/login';
+}
+
+async function loadUser() {
+  try {
+    const res = await fetch('/api/auth/me', { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    const user = await res.json();
+    document.getElementById('user-email').textContent = user.email;
+    const badge = document.getElementById('plan-badge');
+    badge.textContent = user.plan.toUpperCase();
+    badge.className = `plan-badge plan-${user.plan}`;
+  } catch (e) { console.error(e); }
+}
+
+async function loadUsage() {
+  try {
+    const res = await fetch('/api/scripts/usage', { headers: authHeaders() });
+    const data = await res.json();
+    const pct = data.limit ? Math.min(100, (data.used / data.limit) * 100) : 0;
+    document.getElementById('usage-fill').style.width = `${pct}%`;
+    document.getElementById('usage-text').textContent = `${data.used} / ${data.limit} guiones este mes`;
+    const atLimit = data.used >= data.limit;
+    document.getElementById('upgrade-cta').style.display = atLimit ? 'flex' : 'none';
+    document.getElementById('btn-generate').disabled = atLimit;
+  } catch (e) { console.error(e); }
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/scripts', { headers: authHeaders() });
+    scriptsCache = await res.json();
+    const list = document.getElementById('history-list');
+    if (!scriptsCache.length) {
+      list.innerHTML = '<div class="empty">Aún no has generado ningún guion.</div>';
+      return;
+    }
+    list.innerHTML = scriptsCache.map((s, i) => `
+      <div class="history-item" onclick="showScript(${i})">
+        <span class="history-title">${escapeHtml(s.title)}</span>
+        <span class="history-meta">${s.word_count}p · ${new Date(s.created_at).toLocaleDateString()}</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    document.getElementById('history-list').innerHTML = '<div class="empty">Error al cargar el historial.</div>';
+  }
+}
+
+function showScript(i) {
+  const s = scriptsCache[i];
+  renderResult(s.title, s.content, s.word_count);
+}
+
+function renderResult(title, content, wordCount) {
+  currentScript = { title, content };
+  document.getElementById('result-card').style.display = 'block';
+  document.getElementById('result-words').textContent = `${wordCount} palabras`;
+  document.getElementById('result-duration').textContent = `~${Math.max(1, Math.round(wordCount / 150))} min estimados`;
+  document.getElementById('result-content').textContent = content;
+  document.getElementById('result-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function generateScript() {
+  const title = document.getElementById('f-title').value.trim();
+  const errorEl = document.getElementById('error-msg');
+  errorEl.style.display = 'none';
+  if (!title) {
+    errorEl.textContent = 'Escribe un título para el vídeo.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  btn.textContent = 'Generando... (puede tardar ~30s)';
+
+  try {
+    const res = await fetch('/api/scripts/generate', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        title,
+        niche: document.getElementById('f-niche').value,
+        tone: document.getElementById('f-tone').value,
+        target_minutes: parseInt(document.getElementById('f-minutes').value, 10),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Error al generar el guion');
+
+    renderResult(data.title, data.content, data.word_count);
+    await loadHistory();
+  } catch (e) {
+    errorEl.textContent = e.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.textContent = 'Generar guion';
+    await loadUsage();
+  }
+}
+
+function copyScript() {
+  if (!currentScript) return;
+  navigator.clipboard.writeText(currentScript.content);
+}
+
+function downloadScript() {
+  if (!currentScript) return;
+  const blob = new Blob([currentScript.content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${currentScript.title.slice(0, 60).replace(/[^a-z0-9]+/gi, '_')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+loadUser();
+loadUsage();
+loadHistory();
+</script>
+</body>
+</html>

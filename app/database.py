@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -47,6 +47,18 @@ class Signal(Base):
     result       = Column(String, nullable=True)        # WIN | LOSS | PENDING
     pnl          = Column(Float, nullable=True)
     settled_at   = Column(DateTime, nullable=True)
+
+
+class Script(Base):
+    __tablename__ = "scripts"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, nullable=False, index=True)
+    title      = Column(String, nullable=False)
+    niche      = Column(String, default="general")
+    tone       = Column(String, default="dramatico")
+    content    = Column(Text, nullable=False)
+    word_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
 
 def get_db():
