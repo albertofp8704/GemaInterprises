@@ -8,7 +8,7 @@ import stripe
 import os
 from datetime import datetime
 
-from .database import get_db, init_db, User, Signal
+from .database import get_db, init_db, User, Signal, Script
 from .auth import get_current_user, register_user, login_user
 
 # ── App setup ────────────────────────────────────────────────────
@@ -58,6 +58,12 @@ class ChatIn(BaseModel):
     message: str
     history: list[ChatMsg] = []
 
+class ScriptGenerateIn(BaseModel):
+    title:          str
+    niche:          str = "general"
+    tone:           str = "dramatico"
+    target_minutes: int = 5
+
 
 # ── Startup ──────────────────────────────────────────────────────
 @app.on_event("startup")
@@ -86,6 +92,10 @@ async def register_page():
 @app.get("/dashboard")
 async def dashboard_page():
     return FileResponse("static/dashboard.html")
+
+@app.get("/scripts")
+async def scripts_page():
+    return FileResponse("static/scripts.html")
 
 
 # ── Auth ─────────────────────────────────────────────────────────
@@ -263,6 +273,143 @@ async def agent_tts(body: TTSIn):
         raise
     except Exception:
         raise HTTPException(status_code=500, detail="TTS error")
+
+
+# ── Faceless YouTube script generator ────────────────────────────
+SCRIPT_LIMITS    = {"free": 3, "pro": 50, "enterprise": 500}
+WORDS_PER_MINUTE = 150
+
+NICHE_LABELS = {
+    "general":    "contenido general",
+    "historia":   "historia y eventos históricos",
+    "true_crime": "true crime / casos reales",
+    "finanzas":   "educación financiera",
+    "motivacion": "motivación y desarrollo personal",
+    "misterio":   "misterio y curiosidades",
+    "ciencia":    "ciencia y tecnología",
+}
+
+SCRIPT_SYSTEM = """Eres un guionista profesional para canales de YouTube "faceless" (sin presentador visible, solo voz en off sobre B-roll).
+
+Reglas estrictas:
+- Escribe SOLO el texto que se va a narrar. Nada de acotaciones de escena, marcas de tiempo, ni etiquetas como "INTRO:" o "[B-ROLL]".
+- Las primeras 2 frases deben ser un gancho fuerte que evite que el espectador se vaya.
+- Tono solicitado: {tone}. Nicho: {niche_label}.
+- Extensión objetivo: ~{words} palabras (~{minutes} min de locución a 150 ppm). Cíñete a ese rango.
+- Cierra con una frase que invite a seguir el canal, sin sonar a anuncio forzado.
+- Si el tema trata sobre hechos o personas reales, básate en información pública conocida y no presentes afirmaciones inventadas como si fueran noticia verificada. Si dramatizas o especulas, que el tono deje claro que es narrativa, no una nueva afirmación factual."""
+
+
+def _month_start() -> datetime:
+    now = datetime.utcnow()
+    return datetime(now.year, now.month, 1)
+
+
+@app.get("/api/scripts/usage")
+async def script_usage(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    used  = db.query(Script).filter(
+        Script.user_id == current_user.id,
+        Script.created_at >= _month_start(),
+    ).count()
+    limit = SCRIPT_LIMITS.get(current_user.plan, SCRIPT_LIMITS["free"])
+    return {"used": used, "limit": limit, "plan": current_user.plan}
+
+
+@app.post("/api/scripts/generate")
+async def generate_script(
+    body: ScriptGenerateIn,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    title = body.title.strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="title is required")
+    if len(title) > 200:
+        raise HTTPException(status_code=400, detail="title too long (max 200 chars)")
+
+    used  = db.query(Script).filter(
+        Script.user_id == current_user.id,
+        Script.created_at >= _month_start(),
+    ).count()
+    limit = SCRIPT_LIMITS.get(current_user.plan, SCRIPT_LIMITS["free"])
+    if used >= limit:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Límite mensual de {limit} guiones alcanzado para el plan {current_user.plan}. Mejora tu plan para generar más.",
+        )
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Script service not configured")
+
+    minutes     = max(2, min(15, body.target_minutes))
+    words       = minutes * WORDS_PER_MINUTE
+    niche_label = NICHE_LABELS.get(body.niche, body.niche or "contenido general")
+
+    try:
+        import anthropic as _a
+        client = _a.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=4096,
+            system=SCRIPT_SYSTEM.format(
+                tone=body.tone or "dramático", niche_label=niche_label,
+                words=words, minutes=minutes,
+            ),
+            messages=[{"role": "user", "content": f"Título del vídeo: {title}"}],
+        )
+        content = resp.content[0].text
+    except Exception:
+        raise HTTPException(status_code=500, detail="Script generation error")
+
+    script = Script(
+        user_id=current_user.id,
+        title=title,
+        niche=body.niche,
+        tone=body.tone,
+        content=content,
+        word_count=len(content.split()),
+    )
+    db.add(script)
+    db.commit()
+    db.refresh(script)
+
+    return {
+        "id":         script.id,
+        "title":      script.title,
+        "content":    script.content,
+        "word_count": script.word_count,
+        "usage":      {"used": used + 1, "limit": limit, "plan": current_user.plan},
+    }
+
+
+@app.get("/api/scripts")
+async def list_scripts(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    scripts = (
+        db.query(Script)
+        .filter(Script.user_id == current_user.id)
+        .order_by(Script.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    return [
+        {
+            "id":         s.id,
+            "title":      s.title,
+            "niche":      s.niche,
+            "tone":       s.tone,
+            "content":    s.content,
+            "word_count": s.word_count,
+            "created_at": s.created_at.isoformat(),
+        }
+        for s in scripts
+    ]
 
 
 # ── Signals (internal — called by GemaBot) ───────────────────────
