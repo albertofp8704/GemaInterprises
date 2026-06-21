@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "gema-api": {
+      "type": "http",
+      "url": "",
+      "note": "GemaInterprises FastAPI backend. Set URL to your Railway deployment base URL (e.g. https://your-app.up.railway.app). Requires X-API-Key header for internal endpoints."
+    },
+    "stripe": {
+      "type": "http",
+      "url": "https://mcp.stripe.com",
+      "note": "Stripe MCP server for subscription and revenue data. Requires STRIPE_SECRET_KEY."
+    }
+  }
+}
