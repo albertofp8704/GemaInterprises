@@ -67,6 +67,20 @@
     .loading{text-align:center;padding:32px;color:var(--muted)}
     .spinner{display:inline-block;width:22px;height:22px;border:2px solid rgba(0,200,5,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+
+    .media-section{margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+    .media-actions{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap}
+    .btn-media{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-media:hover:not(:disabled){border-color:rgba(0,200,5,.4);color:var(--accent)}
+    .btn-media:disabled{opacity:.5;cursor:not-allowed}
+    .scene-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:14px}
+    .scene-thumb{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px}
+    .scene-thumb img{width:100%;height:100%;object-fit:cover}
+    .scene-status{font-size:10px;color:var(--muted);text-align:center;padding:0 4px}
+    .scene-status.failed{color:var(--red)}
+    .video-wrap{margin-top:14px}
+    .video-wrap video{width:100%;border-radius:10px;display:block}
+    .media-note{font-size:12px;color:var(--muted);margin-top:10px}
   </style>
 </head>
 <body>
@@ -93,6 +107,10 @@
     <div class="usage-row">
       <div class="usage-bar"><div class="usage-fill" id="usage-fill" style="width:0%"></div></div>
       <span class="usage-text" id="usage-text">— / — guiones este mes</span>
+    </div>
+    <div class="usage-row" style="margin-top:10px">
+      <div class="usage-bar"><div class="usage-fill" id="media-usage-fill" style="width:0%"></div></div>
+      <span class="usage-text" id="media-usage-text">— / — mini-vídeos este mes</span>
     </div>
   </div>
 
@@ -154,6 +172,20 @@
       <button class="btn-sm" onclick="copyScript()">📋 Copiar</button>
       <button class="btn-sm" onclick="downloadScript()">⬇ Descargar .txt</button>
     </div>
+
+    <div class="media-section">
+      <h2>🎬 Imágenes y mini-vídeo</h2>
+      <div class="media-actions">
+        <button class="btn-media" id="btn-gen-scenes" onclick="generateMedia()">Generar escenas e imágenes</button>
+        <button class="btn-media" id="btn-gen-video" onclick="generateVideo()" style="display:none">Crear mini-vídeo</button>
+      </div>
+      <div class="error-msg" id="media-error-msg"></div>
+      <div class="scene-grid" id="scene-grid"></div>
+      <div class="video-wrap" id="video-wrap" style="display:none">
+        <video id="video-player" controls></video>
+        <div class="media-note" id="video-note"></div>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -202,6 +234,16 @@ async function loadUsage() {
   } catch (e) { console.error(e); }
 }
 
+async function loadMediaUsage() {
+  try {
+    const res = await fetch('/api/media/usage', { headers: authHeaders() });
+    const data = await res.json();
+    const pct = data.limit ? Math.min(100, (data.used / data.limit) * 100) : 0;
+    document.getElementById('media-usage-fill').style.width = `${pct}%`;
+    document.getElementById('media-usage-text').textContent = `${data.used} / ${data.limit} mini-vídeos este mes`;
+  } catch (e) { console.error(e); }
+}
+
 async function loadHistory() {
   try {
     const res = await fetch('/api/scripts', { headers: authHeaders() });
@@ -224,15 +266,16 @@ async function loadHistory() {
 
 function showScript(i) {
   const s = scriptsCache[i];
-  renderResult(s.title, s.content, s.word_count);
+  renderResult(s.id, s.title, s.content, s.word_count);
 }
 
-function renderResult(title, content, wordCount) {
-  currentScript = { title, content };
+function renderResult(id, title, content, wordCount) {
+  currentScript = { id, title, content };
   document.getElementById('result-card').style.display = 'block';
   document.getElementById('result-words').textContent = `${wordCount} palabras`;
   document.getElementById('result-duration').textContent = `~${Math.max(1, Math.round(wordCount / 150))} min estimados`;
   document.getElementById('result-content').textContent = content;
+  resetMediaUI();
   document.getElementById('result-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -270,7 +313,7 @@ async function generateScript() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Error al generar el guion');
 
-    renderResult(data.title, data.content, data.word_count);
+    renderResult(data.id, data.title, data.content, data.word_count);
     await loadHistory();
   } catch (e) {
     errorEl.textContent = e.message;
@@ -297,8 +340,122 @@ function downloadScript() {
   URL.revokeObjectURL(url);
 }
 
+let scenePollTimer = null;
+let videoPollTimer = null;
+
+function resetMediaUI() {
+  clearInterval(scenePollTimer);
+  clearInterval(videoPollTimer);
+  document.getElementById('media-error-msg').style.display = 'none';
+  document.getElementById('scene-grid').innerHTML = '';
+  document.getElementById('video-wrap').style.display = 'none';
+  const btnScenes = document.getElementById('btn-gen-scenes');
+  btnScenes.style.display = 'inline-block';
+  btnScenes.disabled = false;
+  btnScenes.textContent = 'Generar escenas e imágenes';
+  document.getElementById('btn-gen-video').style.display = 'none';
+}
+
+function renderScenes(scenes) {
+  const grid = document.getElementById('scene-grid');
+  const labels = { pending: 'En cola', queued: 'En cola', generating: 'Generando…', failed: 'Error' };
+  grid.innerHTML = scenes.map(s => {
+    if (s.status === 'done' && s.image_url) {
+      return `<div class="scene-thumb"><img src="${s.image_url}" loading="lazy" /></div>`;
+    }
+    const spinner = s.status === 'generating' ? '<div class="spinner" style="width:16px;height:16px"></div>' : '';
+    const cls = s.status === 'failed' ? ' failed' : '';
+    return `<div class="scene-thumb">${spinner}<span class="scene-status${cls}">${labels[s.status] || s.status}</span></div>`;
+  }).join('');
+
+  const allSettled = scenes.every(s => s.status === 'done' || s.status === 'failed');
+  if (allSettled) {
+    clearInterval(scenePollTimer);
+    const btnScenes = document.getElementById('btn-gen-scenes');
+    btnScenes.disabled = false;
+    btnScenes.textContent = 'Generar escenas e imágenes';
+    if (scenes.some(s => s.status === 'done')) document.getElementById('btn-gen-video').style.display = 'inline-block';
+  }
+}
+
+async function generateMedia() {
+  if (!currentScript || !currentScript.id) return;
+  const errorEl = document.getElementById('media-error-msg');
+  errorEl.style.display = 'none';
+  const btn = document.getElementById('btn-gen-scenes');
+  btn.disabled = true;
+  btn.textContent = 'Generando escenas...';
+
+  try {
+    const scenesRes = await fetch(`/api/scripts/${currentScript.id}/scenes`, { method: 'POST', headers: authHeaders() });
+    const scenesData = await scenesRes.json();
+    if (!scenesRes.ok) throw new Error(scenesData.detail || 'Error al generar escenas');
+    renderScenes(scenesData);
+
+    btn.textContent = 'Generando imágenes...';
+    const imgRes = await fetch(`/api/scripts/${currentScript.id}/images`, { method: 'POST', headers: authHeaders() });
+    const imgData = await imgRes.json();
+    if (!imgRes.ok) throw new Error(imgData.detail || 'Error al generar imágenes');
+
+    scenePollTimer = setInterval(async () => {
+      const res = await fetch(`/api/scripts/${currentScript.id}/scenes`, { headers: authHeaders() });
+      if (!res.ok) return;
+      renderScenes(await res.json());
+    }, 3000);
+  } catch (e) {
+    errorEl.textContent = e.message;
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Generar escenas e imágenes';
+  }
+}
+
+async function generateVideo() {
+  if (!currentScript || !currentScript.id) return;
+  const errorEl = document.getElementById('media-error-msg');
+  errorEl.style.display = 'none';
+  const btn = document.getElementById('btn-gen-video');
+  btn.disabled = true;
+  btn.textContent = 'Creando mini-vídeo... (puede tardar)';
+
+  try {
+    const res = await fetch(`/api/scripts/${currentScript.id}/video`, { method: 'POST', headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Error al crear el vídeo');
+    await loadMediaUsage();
+
+    videoPollTimer = setInterval(async () => {
+      const r = await fetch(`/api/scripts/${currentScript.id}`, { headers: authHeaders() });
+      if (!r.ok) return;
+      const detail = await r.json();
+      if (detail.video_status === 'done') {
+        clearInterval(videoPollTimer);
+        document.getElementById('video-wrap').style.display = 'block';
+        document.getElementById('video-player').src = detail.video_url;
+        document.getElementById('video-note').innerHTML = detail.subtitles_url
+          ? `<a href="${detail.subtitles_url}" target="_blank" style="color:var(--accent)">⬇ Descargar subtítulos .srt</a>`
+          : '';
+        btn.textContent = 'Crear mini-vídeo';
+        btn.disabled = false;
+      } else if (detail.video_status === 'failed') {
+        clearInterval(videoPollTimer);
+        errorEl.textContent = 'Error al ensamblar el mini-vídeo.';
+        errorEl.style.display = 'block';
+        btn.textContent = 'Crear mini-vídeo';
+        btn.disabled = false;
+      }
+    }, 4000);
+  } catch (e) {
+    errorEl.textContent = e.message;
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Crear mini-vídeo';
+  }
+}
+
 loadUser();
 loadUsage();
+loadMediaUsage();
 loadHistory();
 </script>
 </body>

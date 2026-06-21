@@ -51,14 +51,30 @@ class Signal(Base):
 
 class Script(Base):
     __tablename__ = "scripts"
-    id         = Column(Integer, primary_key=True, index=True)
-    user_id    = Column(Integer, nullable=False, index=True)
-    title      = Column(String, nullable=False)
-    niche      = Column(String, default="general")
-    tone       = Column(String, default="dramatico")
-    content    = Column(Text, nullable=False)
-    word_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    id                 = Column(Integer, primary_key=True, index=True)
+    user_id            = Column(Integer, nullable=False, index=True)
+    title              = Column(String, nullable=False)
+    niche              = Column(String, default="general")
+    tone               = Column(String, default="dramatico")
+    content            = Column(Text, nullable=False)
+    word_count         = Column(Integer, default=0)
+    video_status       = Column(String, default="none")  # none | generating | done | failed
+    video_url          = Column(String, nullable=True)
+    subtitles_url      = Column(String, nullable=True)
+    video_requested_at = Column(DateTime, nullable=True, index=True)
+    created_at         = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class Scene(Base):
+    __tablename__ = "scenes"
+    id           = Column(Integer, primary_key=True, index=True)
+    script_id    = Column(Integer, nullable=False, index=True)
+    order        = Column(Integer, nullable=False)
+    text         = Column(Text, nullable=False)
+    image_prompt = Column(Text, nullable=True)
+    image_url    = Column(String, nullable=True)
+    status       = Column(String, default="pending")  # pending | queued | generating | done | failed
+    created_at   = Column(DateTime, default=datetime.utcnow)
 
 
 def get_db():

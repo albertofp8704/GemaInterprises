@@ -10,3 +10,5 @@ python-multipart==0.0.9
 aiofiles==23.2.1
 anthropic>=0.25.0
 httpx>=0.24.0
+replicate>=0.25.0
+cloudinary>=1.40.0

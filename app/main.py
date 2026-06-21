@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,9 +6,11 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import stripe
 import os
+import re
+import json
 from datetime import datetime
 
-from .database import get_db, init_db, User, Signal, Script
+from .database import get_db, init_db, User, Signal, Script, Scene, SessionLocal
 from .auth import get_current_user, register_user, login_user
 
 # ── App setup ────────────────────────────────────────────────────
@@ -410,6 +412,241 @@ async def list_scripts(
         }
         for s in scripts
     ]
+
+
+# ── Faceless video: scenes, AI images (Kandinsky 3) & slideshow ──
+MAX_SCENES   = 8
+VIDEO_LIMITS = {"free": 1, "pro": 10, "enterprise": 50}
+
+SCENE_SYSTEM = """Divide el siguiente guion narrado en escenas para un vídeo "faceless" tipo slideshow.
+
+Devuelve EXCLUSIVAMENTE un array JSON válido (sin texto adicional, sin bloques de código), con este formato exacto:
+[{{"text": "fragmento exacto y consecutivo del guion", "image_prompt": "descripción visual en inglés, fotográfica o cinematográfica, sin texto/letras visibles, coherente con esta escena"}}]
+
+Reglas:
+- Usa el texto del guion tal cual, dividido en fragmentos consecutivos (no resumas ni reescribas).
+- Genera entre 4 y {max_scenes} escenas.
+- Cada "image_prompt" debe estar en inglés y describir una sola imagen fija coherente con ese fragmento."""
+
+
+def _get_owned_script(script_id: int, current_user: User, db: Session) -> Script:
+    script = db.query(Script).filter(Script.id == script_id, Script.user_id == current_user.id).first()
+    if not script:
+        raise HTTPException(status_code=404, detail="Script not found")
+    return script
+
+
+def _scenes_payload(script_id: int, db: Session):
+    scenes = db.query(Scene).filter(Scene.script_id == script_id).order_by(Scene.order).all()
+    return [
+        {
+            "id":           s.id,
+            "order":        s.order,
+            "text":         s.text,
+            "image_prompt": s.image_prompt,
+            "image_url":    s.image_url,
+            "status":       s.status,
+        }
+        for s in scenes
+    ]
+
+
+def _parse_scenes_json(raw: str):
+    text = raw.strip()
+    match = re.search(r"\[.*\]", text, re.DOTALL)
+    if match:
+        text = match.group(0)
+    data = json.loads(text)
+    return [
+        {"text": str(item["text"]).strip(), "image_prompt": str(item["image_prompt"]).strip()}
+        for item in data
+        if item.get("text") and item.get("image_prompt")
+    ]
+
+
+def _run_image_generation(script_id: int):
+    from . import media
+    db = SessionLocal()
+    try:
+        scenes = (
+            db.query(Scene)
+            .filter(Scene.script_id == script_id, Scene.status == "queued")
+            .order_by(Scene.order)
+            .all()
+        )
+        for scene in scenes:
+            scene.status = "generating"
+            db.commit()
+            try:
+                scene.image_url = media.generate_scene_image(scene.image_prompt, script_id, scene.order)
+                scene.status = "done"
+            except Exception:
+                scene.status = "failed"
+            db.commit()
+    finally:
+        db.close()
+
+
+def _run_video_generation(script_id: int):
+    from . import media
+    db = SessionLocal()
+    try:
+        script = db.query(Script).filter(Script.id == script_id).first()
+        scenes = (
+            db.query(Scene)
+            .filter(Scene.script_id == script_id, Scene.status == "done")
+            .order_by(Scene.order)
+            .all()
+        )
+        try:
+            video_url, subtitles_url = media.assemble_slideshow_video(scenes, script_id)
+            script.video_url = video_url
+            script.subtitles_url = subtitles_url
+            script.video_status = "done"
+        except Exception:
+            script.video_status = "failed"
+        db.commit()
+    finally:
+        db.close()
+
+
+@app.post("/api/scripts/{script_id}/scenes")
+async def create_scenes(
+    script_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    script = _get_owned_script(script_id, current_user, db)
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Script service not configured")
+
+    try:
+        import anthropic as _a
+        client = _a.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=2048,
+            system=SCENE_SYSTEM.format(max_scenes=MAX_SCENES),
+            messages=[{"role": "user", "content": script.content}],
+        )
+        scenes_data = _parse_scenes_json(resp.content[0].text)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Scene generation error")
+
+    if not scenes_data:
+        raise HTTPException(status_code=500, detail="Scene generation error")
+
+    db.query(Scene).filter(Scene.script_id == script.id).delete()
+    for i, sc in enumerate(scenes_data[:MAX_SCENES]):
+        db.add(Scene(script_id=script.id, order=i, text=sc["text"], image_prompt=sc["image_prompt"]))
+    script.video_status = "none"
+    script.video_url = None
+    script.subtitles_url = None
+    db.commit()
+
+    return _scenes_payload(script.id, db)
+
+
+@app.get("/api/scripts/{script_id}/scenes")
+async def get_scenes(
+    script_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _get_owned_script(script_id, current_user, db)
+    return _scenes_payload(script_id, db)
+
+
+@app.post("/api/scripts/{script_id}/images")
+async def start_image_generation(
+    script_id: int,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    from . import media
+    script = _get_owned_script(script_id, current_user, db)
+    if not media.images_configured():
+        raise HTTPException(status_code=503, detail="Image service not configured")
+
+    scenes = db.query(Scene).filter(Scene.script_id == script.id, Scene.status.in_(["pending", "failed"])).all()
+    if not scenes:
+        raise HTTPException(status_code=400, detail="No hay escenas pendientes de imagen")
+
+    for s in scenes:
+        s.status = "queued"
+    db.commit()
+
+    background_tasks.add_task(_run_image_generation, script.id)
+    return {"status": "started"}
+
+
+@app.post("/api/scripts/{script_id}/video")
+async def start_video_generation(
+    script_id: int,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    script = _get_owned_script(script_id, current_user, db)
+
+    used  = db.query(Script).filter(
+        Script.user_id == current_user.id,
+        Script.video_requested_at.isnot(None),
+        Script.video_requested_at >= _month_start(),
+    ).count()
+    limit = VIDEO_LIMITS.get(current_user.plan, VIDEO_LIMITS["free"])
+    if used >= limit:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Límite mensual de {limit} vídeos alcanzado para el plan {current_user.plan}. Mejora tu plan para generar más.",
+        )
+
+    scenes = db.query(Scene).filter(Scene.script_id == script.id, Scene.status == "done").order_by(Scene.order).all()
+    if not scenes:
+        raise HTTPException(status_code=400, detail="Genera primero las imágenes de las escenas")
+
+    script.video_status = "generating"
+    script.video_requested_at = datetime.utcnow()
+    db.commit()
+
+    background_tasks.add_task(_run_video_generation, script.id)
+    return {"status": "started", "usage": {"used": used + 1, "limit": limit, "plan": current_user.plan}}
+
+
+@app.get("/api/scripts/{script_id}")
+async def get_script_detail(
+    script_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    script = _get_owned_script(script_id, current_user, db)
+    return {
+        "id":            script.id,
+        "title":         script.title,
+        "content":       script.content,
+        "word_count":    script.word_count,
+        "video_status":  script.video_status,
+        "video_url":     script.video_url,
+        "subtitles_url": script.subtitles_url,
+        "scenes":        _scenes_payload(script.id, db),
+    }
+
+
+@app.get("/api/media/usage")
+async def media_usage(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    used  = db.query(Script).filter(
+        Script.user_id == current_user.id,
+        Script.video_requested_at.isnot(None),
+        Script.video_requested_at >= _month_start(),
+    ).count()
+    limit = VIDEO_LIMITS.get(current_user.plan, VIDEO_LIMITS["free"])
+    return {"used": used, "limit": limit, "plan": current_user.plan}
 
 
 # ── Signals (internal — called by GemaBot) ───────────────────────
